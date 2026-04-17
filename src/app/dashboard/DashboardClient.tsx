@@ -38,7 +38,9 @@ interface RawRecord {
   fixedCosts: number
   notes?: string | null
   product: Product
+  productId: string
   product2?: Product | null
+  product2Id?: string | null
 }
 
 // ============================
