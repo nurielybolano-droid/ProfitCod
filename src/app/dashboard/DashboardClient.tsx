@@ -28,12 +28,19 @@ interface Product {
 interface RawRecord {
   id: string
   date: string
-  orders: number
-  delivered: number
-  rejected: number
+  ordersReceived1: number
+  ordersReceived2: number
+  ordersConfirmed1: number
+  ordersConfirmed2: number
+  ordersShipped: number
+  ordersDelivered1: number
+  ordersDelivered2: number
+  returns: number
   adsSpend: number
+  fixedCosts: number
   notes?: string | null
   product: Product
+  product2?: Product | null
 }
 
 // ============================
@@ -51,11 +58,18 @@ function QuickEntryModal({
   const today = new Date().toISOString().split('T')[0]
   const [form, setForm] = useState({
     productId: products[0]?.id || '',
+    product2Id: '',
     date: today,
-    orders: '',
-    delivered: '',
-    rejected: '',
+    ordersReceived1: '',
+    ordersReceived2: '',
+    ordersConfirmed1: '',
+    ordersConfirmed2: '',
+    ordersShipped: '',
+    ordersDelivered1: '',
+    ordersDelivered2: '',
+    returns: '',
     adsSpend: '',
+    fixedCosts: '',
     notes: '',
   })
   const [error, setError] = useState('')
@@ -63,20 +77,29 @@ function QuickEntryModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.productId) return setError('Selecciona un producto')
+    if (!form.productId) return setError('Selecciona un producto principal')
     setError('')
     setLoading(true)
+
+    const payload = {
+      ...form,
+      ordersReceived1:  Number(form.ordersReceived1 || 0),
+      ordersReceived2:  Number(form.ordersReceived2 || 0),
+      ordersConfirmed1: Number(form.ordersConfirmed1 || 0),
+      ordersConfirmed2: Number(form.ordersConfirmed2 || 0),
+      ordersShipped:    Number(form.ordersShipped || 0),
+      ordersDelivered1: Number(form.ordersDelivered1 || 0),
+      ordersDelivered2: Number(form.ordersDelivered2 || 0),
+      returns:          Number(form.returns || 0),
+      adsSpend:         Number(form.adsSpend || 0),
+      fixedCosts:       Number(form.fixedCosts || 0),
+      product2Id:       form.product2Id || null,
+    }
 
     const res = await fetch('/api/records', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form,
-        orders: Number(form.orders),
-        delivered: Number(form.delivered),
-        rejected: form.rejected ? Number(form.rejected) : undefined,
-        adsSpend: Number(form.adsSpend),
-      }),
+      body: JSON.stringify(payload),
     })
 
     setLoading(false)
@@ -111,54 +134,96 @@ function QuickEntryModal({
           <button className="modal-close" onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.25rem' }}>✕</button>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            <div className="form-group">
-              <label className="form-label">Producto</label>
-              <select className="form-input" value={form.productId} onChange={e => setForm(f => ({...f, productId: e.target.value}))} required>
-                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
+          <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label className="form-label">Producto Principal (1ud)</label>
+                <select className="form-input" value={form.productId} onChange={e => setForm(f => ({...f, productId: e.target.value}))} required>
+                  {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Producto Secundario (2ud)</label>
+                <select className="form-input" value={form.product2Id} onChange={e => setForm(f => ({...f, product2Id: e.target.value}))}>
+                  <option value="">Ninguno (Solo 1ud)</option>
+                  {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
             </div>
 
             <div className="form-grid-2">
               <div className="form-group">
-                <label className="form-label" htmlFor="r-date">Fecha</label>
-                <input id="r-date" type="date" className="form-input"
-                  value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
+                <label className="form-label">Fecha</label>
+                <input type="date" className="form-input" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
               </div>
               <div className="form-group">
-                <label className="form-label" htmlFor="r-ads">Inversión Ads (€)</label>
-                <input id="r-ads" type="number" step="0.01" min="0" className="form-input"
-                  placeholder="0.00" value={form.adsSpend}
-                  onChange={e => setForm(f => ({ ...f, adsSpend: e.target.value }))} required />
+                <label className="form-label">Inversión Ads (€)</label>
+                <input type="number" step="0.01" className="form-input" placeholder="0.00" value={form.adsSpend} onChange={e => setForm(f => ({ ...f, adsSpend: e.target.value }))} required />
               </div>
             </div>
 
-            <div className="form-grid-3">
-              <div className="form-group">
-                <label className="form-label" htmlFor="r-orders">Pedidos</label>
-                <input id="r-orders" type="number" min="0" className="form-input"
-                  placeholder="0" value={form.orders}
-                  onChange={e => setForm(f => ({ ...f, orders: e.target.value }))} required />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="r-delivered">Entregados</label>
-                <input id="r-delivered" type="number" min="0" className="form-input"
-                  placeholder="0" value={form.delivered}
-                  onChange={e => setForm(f => ({ ...f, delivered: e.target.value }))} required />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="r-rejected">Rechazados</label>
-                <input id="r-rejected" type="number" min="0" className="form-input"
-                  placeholder="Auto" value={form.rejected}
-                  onChange={e => setForm(f => ({ ...f, rejected: e.target.value }))} />
+            <div style={{ padding: '1rem', background: 'rgba(123, 97, 255, 0.05)', borderRadius: '12px', marginBottom: '1.5rem' }}>
+              <p style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--color-primary)', textTransform: 'uppercase', marginBottom: '1rem' }}>Pedidos Recibidos</p>
+              <div className="form-grid-2">
+                <div className="form-group">
+                  <label className="form-label small">1 Unidad</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.ordersReceived1} onChange={e => setForm(f => ({ ...f, ordersReceived1: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label small">2 Unidades</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.ordersReceived2} onChange={e => setForm(f => ({ ...f, ordersReceived2: e.target.value }))} />
+                </div>
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="r-notes">Notas</label>
-              <input id="r-notes" type="text" className="form-input"
-                placeholder="..." value={form.notes}
-                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+            <div style={{ padding: '1rem', background: 'rgba(39, 174, 96, 0.05)', borderRadius: '12px', marginBottom: '1.5rem' }}>
+              <p style={{ fontWeight: 600, fontSize: '0.8rem', color: '#27ae60', textTransform: 'uppercase', marginBottom: '1rem' }}>Pedidos Confirmados</p>
+              <div className="form-grid-2">
+                <div className="form-group">
+                  <label className="form-label small">1 Unidad</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.ordersConfirmed1} onChange={e => setForm(f => ({ ...f, ordersConfirmed1: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label small">2 Unidades</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.ordersConfirmed2} onChange={e => setForm(f => ({ ...f, ordersConfirmed2: e.target.value }))} />
+                </div>
+              </div>
+            </div>
+
+            <div className="form-grid-2" style={{ marginBottom: '1.5rem' }}>
+               <div className="form-group">
+                <label className="form-label">Total Enviados</label>
+                <input type="number" className="form-input" placeholder="0" value={form.ordersShipped} onChange={e => setForm(f => ({ ...f, ordersShipped: e.target.value }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Devoluciones</label>
+                <input type="number" className="form-input" placeholder="0" value={form.returns} onChange={e => setForm(f => ({ ...f, returns: e.target.value }))} />
+              </div>
+            </div>
+
+            <div style={{ padding: '1rem', background: 'rgba(123, 97, 255, 0.1)', borderRadius: '12px', marginBottom: '1.5rem' }}>
+              <p style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--color-primary)', textTransform: 'uppercase', marginBottom: '1rem' }}>Entregas Exitosas</p>
+              <div className="form-grid-2">
+                <div className="form-group">
+                  <label className="form-label small">Entregados 1ud</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.ordersDelivered1} onChange={e => setForm(f => ({ ...f, ordersDelivered1: e.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label small">Entregados 2ud</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.ordersDelivered2} onChange={e => setForm(f => ({ ...f, ordersDelivered2: e.target.value }))} />
+                </div>
+              </div>
+            </div>
+
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label className="form-label">Otros Gastos (€)</label>
+                <input type="number" step="0.01" className="form-input" placeholder="0.00" value={form.fixedCosts} onChange={e => setForm(f => ({ ...f, fixedCosts: e.target.value }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Notas</label>
+                <input type="text" className="form-input" placeholder="..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+              </div>
             </div>
 
             {error && <p className="form-error" style={{ color: 'var(--color-danger)', fontSize: '0.85rem' }}>{error}</p>}
@@ -247,17 +312,7 @@ export default function DashboardClient() {
       }
 
       setProducts(Array.isArray(prodData) ? prodData : [])
-      
-      // Bridge new field names to legacy field names for dashboard compatibility
-      const bridgedRecords = Array.isArray(recData) ? recData.map((r: any) => ({
-        ...r,
-        orders: r.orders || (Number(r.ordersReceived1 || 0) + Number(r.ordersReceived2 || 0)),
-        delivered: r.delivered || (Number(r.ordersDelivered1 || 0) + Number(r.ordersDelivered2 || 0)),
-        rejected: r.rejected || (Number(r.returns || 0)), // Using returns as a proxy for rejected for dashboard simplicity
-        fixedCosts: Number(r.fixedCosts || 0)
-      })) : []
-
-      setRecords(bridgedRecords)
+      setRecords(Array.isArray(recData) ? recData : [])
     } catch (e) {
       console.error('Fetch error:', e)
     }
@@ -277,49 +332,8 @@ export default function DashboardClient() {
   // Multi-Product Aggregate Logic
   const metrics = useMemo(() => {
     if (!records.length) return []
-    
-    if (selectedProductId !== 'all') {
-      const product = products.find(p => p.id === selectedProductId)
-      return calculateAllMetrics(
-        records.map(r => ({ ...r, product: r.product, productName: r.product.name })),
-        product || undefined
-      )
-    } else {
-      const grouped: Record<string, any> = {}
-      records.forEach(r => {
-        const d = r.date.split('T')[0]
-        if (!grouped[d]) {
-          grouped[d] = {
-            date: d,
-            orders: 0, delivered: 0, rejected: 0, adsSpend: 0,
-            revenue: 0, profit: 0, totalCost: 0
-          }
-        }
-        const m = calculateAllMetrics([r], r.product)[0]
-        grouped[d].orders += m.orders
-        grouped[d].delivered += m.delivered
-        grouped[d].rejected += m.rejected
-        grouped[d].adsSpend += m.adsSpend
-        grouped[d].revenue += m.revenue
-        grouped[d].profit += m.profit
-        grouped[d].totalCost += m.totalCost
-      })
-
-      const final = Object.values(grouped).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      let cum = 0
-      return final.map(d => {
-        cum += d.profit
-        return {
-          ...d,
-          cumulativeProfit: cum,
-          deliveryRate: d.orders > 0 ? (d.delivered / d.orders) * 100 : 0,
-          cpa: d.orders > 0 ? d.adsSpend / d.orders : 0,
-          roas: d.adsSpend > 0 ? d.revenue / d.adsSpend : 0,
-          marginPerDelivered: d.delivered > 0 ? (d.revenue - d.totalCost) / d.delivered : 0
-        }
-      }) as DailyMetrics[]
-    }
-  }, [records, selectedProductId, products])
+    return calculateAllMetrics(records)
+  }, [records])
 
   const alerts = useMemo(() => getSummaryAlerts(metrics), [metrics])
 
@@ -454,7 +468,7 @@ export default function DashboardClient() {
                 <tr>
                   <th>Fecha</th>
                   {selectedProductId === 'all' && <th>Producto</th>}
-                  <th>Pedidos</th>
+                  <th>Recibidos</th>
                   <th>Entregados</th>
                   <th>Ingresos</th>
                   <th>Beneficio</th>
@@ -463,20 +477,23 @@ export default function DashboardClient() {
                 </tr>
               </thead>
               <tbody>
-                {records.slice(-10).reverse().map(r => {
-                  const m = calculateAllMetrics([r], r.product)[0]
+                {metrics.slice(-10).reverse().map(m => {
                   const st = getDayStatus(m)
+                  // Find original record ID for deletion
+                  const originalRecord = records.find(r => r.date.split('T')[0] === m.date.split('T')[0] && (selectedProductId === 'all' || r.productId === selectedProductId))
                   return (
-                    <tr key={r.id}>
-                      <td style={{ fontWeight: 500 }}>{new Date(r.date).toLocaleDateString()}</td>
-                      {selectedProductId === 'all' && <td style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{r.product.name}</td>}
-                      <td>{r.orders}</td>
-                      <td>{r.delivered}</td>
+                    <tr key={m.date}>
+                      <td style={{ fontWeight: 500 }}>{new Date(m.date).toLocaleDateString()}</td>
+                      {selectedProductId === 'all' && <td style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{m.productName}</td>}
+                      <td>{m.orders}</td>
+                      <td>{m.delivered}</td>
                       <td style={{ fontWeight: 600 }}>{formatCurrency(m.revenue)}</td>
                       <td style={{ color: m.profit >= 0 ? '#27ae60' : '#e74c3c', fontWeight: 600 }}>{formatCurrency(m.profit)}</td>
                       <td><span className={`status-badge ${st.status}`}>{st.label}</span></td>
                       <td style={{ textAlign: 'right' }}>
-                        <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleDelete(r.id)}>✕</button>
+                        {originalRecord && (
+                          <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleDelete(originalRecord.id)}>✕</button>
+                        )}
                       </td>
                     </tr>
                   )

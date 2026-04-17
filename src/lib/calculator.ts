@@ -1,4 +1,6 @@
 export interface ProductConfig {
+  id: string
+  name: string
   pvp: number
   costProduct: number
   costShipping: number
@@ -9,127 +11,159 @@ export interface ProductConfig {
 
 export interface DailyRecord {
   date: string
-  orders: number
-  delivered: number
-  rejected: number
+  // Granular fields
+  ordersReceived1: number
+  ordersReceived2: number
+  ordersConfirmed1: number
+  ordersConfirmed2: number
+  ordersShipped: number
+  ordersDelivered1: number
+  ordersDelivered2: number
+  returns: number
+  
   adsSpend: number
-  fixedCosts?: number // New: per-record fixed costs
+  fixedCosts?: number
   notes?: string | null
-  product?: ProductConfig // Now records come with their specific product config
+  
+  product: ProductConfig
+  product2?: ProductConfig | null
+  
+  // Legacy fields (optional compatibility)
+  orders?: number
+  delivered?: number
+  rejected?: number
 }
 
 export interface DailyMetrics {
   date: string
-  orders: number
+  // Totals
+  orders: number // Total Received
+  confirmed: number
+  shipped: number
   delivered: number
-  rejected: number
+  returns: number
+  
   adsSpend: number
   fixedCosts: number
   notes?: string | null
   productName?: string
+  
   // Calculated
-  unitCost: number
-  totalCost: number
+  totalCogs: number
+  totalShippingCost: number
+  totalCodFee: number
+  totalInvestment: number
   revenue: number
   profit: number
+  
+  // Ratios
   deliveryRate: number
-  rejectionRate: number
-  marginPerDelivered: number
+  returnRate: number
   cpa: number
   roas: number
-  breakEven: number
+  marginPerDelivered: number
+  
   cumulativeProfit?: number
 }
 
+/**
+ * Calculates metrics for a specific day and product(s)
+ */
 export function calculateMetrics(
-  record: DailyRecord,
-  config: ProductConfig
+  record: DailyRecord
 ): Omit<DailyMetrics, 'cumulativeProfit'> {
-  const { pvp, costProduct, costShipping, feeCod, fixedCostDaily = 0 } = config
-  const { orders, delivered, rejected, adsSpend, fixedCosts = 0, date, notes } = record
-
-  // 1. Coste unitario por pedido
-  const unitCost = (costProduct || 0) + (costShipping || 0) + (feeCod || 0)
-
-  // 2. Coste total diario (todos los pedidos, se entreguen o no)
-  const totalCost = (orders || 0) * unitCost
-
-  // 3. Ingresos diarios (solo pedidos entregados)
-  const revenue = (delivered || 0) * (pvp || 0)
-
-  // 4. Beneficio diario
-  const profit = revenue - totalCost - (adsSpend || 0) - (fixedCostDaily || 0) - (fixedCosts || 0)
-
-  // 5. Tasa de entrega
-  const deliveryRate = orders > 0 ? (delivered / orders) * 100 : 0
-
-  // 6. Tasa de rechazo
-  const rejectionRate = orders > 0 ? (rejected / orders) * 100 : 0
-
-  // 7. Margen por pedido entregado
-  const marginPerDelivered = pvp - unitCost
-
-  // 9. CPA
-  const cpa = orders > 0 ? adsSpend / orders : 0
-
-  // 10. ROAS
+  const p1 = record.product
+  const p2 = record.product2 || p1 // Default to p1 if p2 not specified
+  
+  const d1 = Number(record.ordersDelivered1 || 0)
+  const d2 = Number(record.ordersDelivered2 || 0)
+  const shipped = Number(record.ordersShipped || 0)
+  const receivedTotal = Number(record.ordersReceived1 || 0) + Number(record.ordersReceived2 || 0)
+  const confirmedTotal = Number(record.ordersConfirmed1 || 0) + Number(record.ordersConfirmed2 || 0)
+  const deliveredTotal = d1 + d2
+  
+  // 1. Revenue (Delivered units * their respective PVP)
+  const revenue = (d1 * (p1.pvp || 0)) + (d2 * (p2.pvp || 0))
+  
+  // 2. COGS (Delivered units * their respective Cost)
+  const totalCogs = (d1 * (p1.costProduct || 0)) + (d2 * (p2.costProduct || 0))
+  
+  // 3. Shipping (Shipped orders * Shipping fee of main product)
+  // We assume 1 order = 1 shipping fee even if multi-unit
+  const totalShippingCost = shipped * (p1.costShipping || 0)
+  
+  // 4. COD Fee (Delivered orders * COD fee)
+  const totalCodFee = deliveredTotal * (p1.feeCod || 0)
+  
+  // 5. Total Investment
+  const adsSpend = Number(record.adsSpend || 0)
+  const fixedCosts = Number(record.fixedCosts || 0)
+  const totalInvestment = adsSpend + fixedCosts + totalShippingCost + totalCodFee + totalCogs
+  
+  // 6. Profit
+  const profit = revenue - totalInvestment
+  
+  // 7. Ratios
+  const deliveryRate = receivedTotal > 0 ? (deliveredTotal / receivedTotal) * 100 : 0
+  const returnRate = shipped > 0 ? (Number(record.returns || 0) / shipped) * 100 : 0
+  const cpa = receivedTotal > 0 ? adsSpend / receivedTotal : 0
   const roas = adsSpend > 0 ? revenue / adsSpend : 0
-
-  // 11. Punto de equilibrio
-  const breakEven = marginPerDelivered > 0 ? totalCost / marginPerDelivered : Infinity
+  const marginPerDelivered = deliveredTotal > 0 ? profit / deliveredTotal : 0
 
   return {
-    date,
-    orders,
-    delivered,
-    rejected,
+    date: record.date,
+    orders: receivedTotal,
+    confirmed: confirmedTotal,
+    shipped,
+    delivered: deliveredTotal,
+    returns: Number(record.returns || 0),
     adsSpend,
     fixedCosts,
-    notes,
-    unitCost,
-    totalCost,
+    notes: record.notes,
+    productName: p1.name,
+    totalCogs,
+    totalShippingCost,
+    totalCodFee,
+    totalInvestment,
     revenue,
     profit,
     deliveryRate,
-    rejectionRate,
-    marginPerDelivered,
+    returnRate,
     cpa,
     roas,
-    breakEven,
+    marginPerDelivered
   }
 }
 
 /**
  * Calculates metrics for a list of records.
- * Each record can optionally have its own product config (for multi-product / aggregate views).
- * If no specific config is on the record, the provided fallback config is used.
  */
 export function calculateAllMetrics(
-  records: ({ date: string; orders: number; delivered: number; rejected: number; adsSpend: number; fixedCosts?: number; notes?: string | null; product?: any; productName?: string }) [],
-  fallbackConfig?: ProductConfig
+  records: any[]
 ): DailyMetrics[] {
   let cumulative = 0
   
-  // Sort by date to ensure cumulative profit is correct
+  // Sort by date 
   const sortedRecords = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   return sortedRecords.map((record) => {
-    const config = record.product || fallbackConfig
-    if (!config) {
-      // If no config found anywhere, return zeroes/placeholder
-      return {
-        ...record,
-        unitCost: 0, totalCost: 0, revenue: 0, profit: 0, 
-        deliveryRate: 0, rejectionRate: 0, marginPerDelivered: 0, 
-        cpa: 0, roas: 0, breakEven: 0, cumulativeProfit: 0
-      } as DailyMetrics
+    // If it's a legacy record without granular fields, try to bridge it
+    const normalizedRecord: DailyRecord = {
+      ...record,
+      ordersReceived1: record.ordersReceived1 ?? record.orders ?? 0,
+      ordersReceived2: record.ordersReceived2 ?? 0,
+      ordersShipped: record.ordersShipped ?? record.orders ?? 0,
+      ordersDelivered1: record.ordersDelivered1 ?? record.delivered ?? 0,
+      ordersDelivered2: record.ordersDelivered2 ?? 0,
+      returns: record.returns ?? record.rejected ?? 0,
+      product: record.product,
+      product2: record.product2 || null
     }
 
-    const metrics = calculateMetrics(record as any, config)
+    const metrics = calculateMetrics(normalizedRecord)
     cumulative += metrics.profit
     return {
       ...metrics,
-      productName: record.productName,
       cumulativeProfit: cumulative,
     }
   })
