@@ -9,8 +9,7 @@ import {
   CumulativeProfitChart,
   OrdersVsDeliveredChart,
   DeliveryRateChart,
-  AdsVsRevenueChart,
-  MarginVsCpaChart,
+  DailyPerformanceChart,
 } from '@/components/Charts'
 import AIAssistant from '@/components/AIAssistant'
 
@@ -451,6 +450,10 @@ export default function DashboardClient() {
             <div className="chart-card glass-panel">
               <div className="chart-header"><span className="chart-title">Curva de Crecimiento</span></div>
               <div className="chart-body" style={{ height: '300px' }}><CumulativeProfitChart metrics={metrics} /></div>
+            </div>
+            <div className="chart-card glass-panel" style={{ gridColumn: 'span 2' }}>
+              <div className="chart-header"><span className="chart-title">Rendimiento Diario (Pedidos, Ingresos y Beneficios)</span></div>
+              <div className="chart-body" style={{ height: '350px' }}><DailyPerformanceChart metrics={metrics} /></div>
             </div>
             <div className="chart-card glass-panel">
               <div className="chart-header"><span className="chart-title">Embudo de Despacho</span></div>

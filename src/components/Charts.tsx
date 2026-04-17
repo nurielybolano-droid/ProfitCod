@@ -229,6 +229,60 @@ export function ProductMixDonut({ data }: { data: { name: string, value: number 
   )
 }
 
+export function DailyPerformanceChart({ metrics }: { metrics: DailyMetrics[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={metrics} barGap={0}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
+        <XAxis 
+          dataKey="date" 
+          tickFormatter={(d) => new Date(d).toLocaleDateString(undefined, { day: 'numeric' })}
+          tick={{ fill: COLORS.text, fontSize: 10 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis 
+          yId="left"
+          tick={{ fill: COLORS.text, fontSize: 10 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis 
+          yId="right"
+          orientation="right"
+          tick={{ fill: COLORS.text, fontSize: 10 }}
+          axisLine={false}
+          tickLine={false}
+          tickFormatter={(v) => `${v}€`}
+        />
+        <Tooltip content={<CustomTooltip />} />
+        <Bar 
+          yId="left"
+          dataKey="orders" 
+          name="Pedidos"
+          fill={COLORS.primaryLight} 
+          radius={[4, 4, 0, 0]} 
+          opacity={0.6}
+        />
+        <Bar 
+          yId="right"
+          dataKey="revenue" 
+          name="Ingresos"
+          fill={COLORS.info} 
+          radius={[4, 4, 0, 0]} 
+        />
+        <Bar 
+          yId="right"
+          dataKey="profit" 
+          name="Beneficio"
+          fill={COLORS.success} 
+          radius={[4, 4, 0, 0]} 
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+
 // Placeholder for remaining charts (keeping consistent naming for DashboardClient)
 export function AdsVsRevenueChart({ metrics }: { metrics: DailyMetrics[] }) {
   return <RevenueVsCostChart metrics={metrics} />
