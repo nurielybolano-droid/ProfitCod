@@ -13,27 +13,36 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     setError('')
     setLoading(true)
 
-    const result = await signIn('credentials', {
-      email: form.email,
-      password: form.password,
-      redirect: false,
-    })
+    try {
+      console.log('Attempting login with:', form.email)
+      const result = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      })
 
-    setLoading(false)
-    console.log('Login result:', result)
+      console.log('Login result:', result)
 
-    if (result?.error) {
-      if (result.error === 'CredentialsSignin') {
-        setError('Credenciales incorrectas. Revisa tu email y contraseña.')
+      if (result?.error) {
+        if (result.error === 'CredentialsSignin') {
+          setError('Credenciales incorrectas. Revisa tu email y contraseña.')
+        } else {
+          setError('Error de Auth.js: ' + result.error)
+        }
       } else {
-        setError('Error al iniciar sesión: ' + result.error)
+        console.log('Login successful, redirecting...')
+        router.push('/dashboard')
+        router.refresh()
       }
-    } else {
-      router.push('/dashboard')
-      router.refresh()
+    } catch (err: any) {
+      console.error('CRITICAL LOGIN ERROR:', err)
+      setError('Error crítico: ' + (err.message || 'Error desconocido network/server'))
+    } finally {
+      setLoading(false)
     }
   }
 
