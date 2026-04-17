@@ -5,11 +5,10 @@ import { calculateAllMetrics, formatCurrency, formatPercent, DailyMetrics } from
 import { getDayStatus, getSummaryAlerts, Alert } from '@/lib/alerts'
 import Link from 'next/link'
 import {
-  RevenueVsCostChart,
+  DailyOrdersChart,
+  DailyRevenueChart,
+  DailyProfitChart,
   CumulativeProfitChart,
-  OrdersVsDeliveredChart,
-  DeliveryRateChart,
-  DailyPerformanceChart,
 } from '@/components/Charts'
 import AIAssistant from '@/components/AIAssistant'
 
@@ -442,26 +441,22 @@ export default function DashboardClient() {
             )}
           </div>
 
-          <div className="charts-grid">
-            <div className="chart-card glass-panel">
-              <div className="chart-header"><span className="chart-title">Ingresos vs Costes</span></div>
-              <div className="chart-body" style={{ height: '300px' }}><RevenueVsCostChart metrics={metrics} /></div>
+          <div className="charts-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+              <div className="chart-header"><span className="chart-title">Pedidos</span></div>
+              <div className="chart-body" style={{ height: '280px' }}><DailyOrdersChart metrics={metrics} /></div>
             </div>
-            <div className="chart-card glass-panel">
-              <div className="chart-header"><span className="chart-title">Curva de Crecimiento</span></div>
-              <div className="chart-body" style={{ height: '300px' }}><CumulativeProfitChart metrics={metrics} /></div>
+            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+              <div className="chart-header"><span className="chart-title">Ingresos</span></div>
+              <div className="chart-body" style={{ height: '280px' }}><DailyRevenueChart metrics={metrics} /></div>
             </div>
-            <div className="chart-card glass-panel" style={{ gridColumn: 'span 2' }}>
-              <div className="chart-header"><span className="chart-title">Rendimiento Diario (Pedidos, Ingresos y Beneficios)</span></div>
-              <div className="chart-body" style={{ height: '350px' }}><DailyPerformanceChart metrics={metrics} /></div>
+            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+              <div className="chart-header"><span className="chart-title">Beneficio Diario</span></div>
+              <div className="chart-body" style={{ height: '280px' }}><DailyProfitChart metrics={metrics} /></div>
             </div>
-            <div className="chart-card glass-panel">
-              <div className="chart-header"><span className="chart-title">Embudo de Despacho</span></div>
-              <div className="chart-body" style={{ height: '300px' }}><OrdersVsDeliveredChart metrics={metrics} /></div>
-            </div>
-            <div className="chart-card glass-panel">
-              <div className="chart-header"><span className="chart-title">Eficiencia de Entrega</span></div>
-              <div className="chart-body" style={{ height: '300px' }}><DeliveryRateChart metrics={metrics} /></div>
+            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+              <div className="chart-header"><span className="chart-title">Beneficio Acumulado</span></div>
+              <div className="chart-body" style={{ height: '280px' }}><CumulativeProfitChart metrics={metrics} /></div>
             </div>
           </div>
 
