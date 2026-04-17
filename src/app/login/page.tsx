@@ -32,14 +32,21 @@ export default function LoginPage() {
           setError('Credenciales incorrectas. Revisa tu email y contraseña.')
         } else {
           setError('Error de Auth.js: ' + result.error)
+          window.alert('ERROR DE AUTH.JS: ' + result.error)
         }
       } else {
-        console.log('Login successful, redirecting...')
+        console.log('Login successful! Session should be active now.')
+        console.log('FREEZING REDIRECT FOR 3 SECONDS... Check Console/Network tabs.')
+        
+        // Let user see the success log
+        await new Promise(resolve => setTimeout(resolve, 3000))
+        
         router.push('/dashboard')
         router.refresh()
       }
     } catch (err: any) {
       console.error('CRITICAL LOGIN ERROR:', err)
+      window.alert('ERROR CRÍTICO (Ver consola): ' + err.message)
       setError('Error crítico: ' + (err.message || 'Error desconocido network/server'))
     } finally {
       setLoading(false)
