@@ -1,0 +1,498 @@
+'use client'
+
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { calculateAllMetrics, formatCurrency, formatPercent, DailyMetrics } from '@/lib/calculator'
+import { getDayStatus, getSummaryAlerts, Alert } from '@/lib/alerts'
+import Link from 'next/link'
+import {
+  RevenueVsCostChart,
+  CumulativeProfitChart,
+  OrdersVsDeliveredChart,
+  DeliveryRateChart,
+  AdsVsRevenueChart,
+  MarginVsCpaChart,
+} from '@/components/Charts'
+import AIAssistant from '@/components/AIAssistant'
+
+interface Product {
+  id: string
+  name: string
+  pvp: number
+  costProduct: number
+  costShipping: number
+  feeCod: number
+  fixedCostDaily: number
+  marginTarget?: number | null
+}
+
+interface RawRecord {
+  id: string
+  date: string
+  orders: number
+  delivered: number
+  rejected: number
+  adsSpend: number
+  notes?: string | null
+  product: Product
+}
+
+// ============================
+// Quick Entry Form (Modal)
+// ============================
+function QuickEntryModal({
+  products,
+  onClose,
+  onSaved,
+}: {
+  products: Product[]
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const today = new Date().toISOString().split('T')[0]
+  const [form, setForm] = useState({
+    productId: products[0]?.id || '',
+    date: today,
+    orders: '',
+    delivered: '',
+    rejected: '',
+    adsSpend: '',
+    notes: '',
+  })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.productId) return setError('Selecciona un producto')
+    setError('')
+    setLoading(true)
+
+    const res = await fetch('/api/records', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...form,
+        orders: Number(form.orders),
+        delivered: Number(form.delivered),
+        rejected: form.rejected ? Number(form.rejected) : undefined,
+        adsSpend: Number(form.adsSpend),
+      }),
+    })
+
+    setLoading(false)
+    if (!res.ok) {
+      const d = await res.json()
+      setError(d.error || 'Error al guardar')
+      return
+    }
+
+    onSaved()
+    onClose()
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal glass-panel" onClick={e => e.stopPropagation()}>
+          <div className="modal-body" style={{ textAlign: 'center', padding: '3rem' }}>
+            <p style={{ color: 'var(--color-danger)', marginBottom: '1.5rem' }}>No hay productos configurados</p>
+            <Link href="/config" className="btn btn-primary">Configurar primer producto</Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal glass-panel" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="modal-title">Nuevo Registro Diario</h2>
+          <button className="modal-close" onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.25rem' }}>✕</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            <div className="form-group">
+              <label className="form-label">Producto</label>
+              <select className="form-input" value={form.productId} onChange={e => setForm(f => ({...f, productId: e.target.value}))} required>
+                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label className="form-label" htmlFor="r-date">Fecha</label>
+                <input id="r-date" type="date" className="form-input"
+                  value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="r-ads">Inversión Ads (€)</label>
+                <input id="r-ads" type="number" step="0.01" min="0" className="form-input"
+                  placeholder="0.00" value={form.adsSpend}
+                  onChange={e => setForm(f => ({ ...f, adsSpend: e.target.value }))} required />
+              </div>
+            </div>
+
+            <div className="form-grid-3">
+              <div className="form-group">
+                <label className="form-label" htmlFor="r-orders">Pedidos</label>
+                <input id="r-orders" type="number" min="0" className="form-input"
+                  placeholder="0" value={form.orders}
+                  onChange={e => setForm(f => ({ ...f, orders: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="r-delivered">Entregados</label>
+                <input id="r-delivered" type="number" min="0" className="form-input"
+                  placeholder="0" value={form.delivered}
+                  onChange={e => setForm(f => ({ ...f, delivered: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="r-rejected">Rechazados</label>
+                <input id="r-rejected" type="number" min="0" className="form-input"
+                  placeholder="Auto" value={form.rejected}
+                  onChange={e => setForm(f => ({ ...f, rejected: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="r-notes">Notas</label>
+              <input id="r-notes" type="text" className="form-input"
+                placeholder="..." value={form.notes}
+                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+            </div>
+
+            {error && <p className="form-error" style={{ color: 'var(--color-danger)', fontSize: '0.85rem' }}>{error}</p>}
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
+            <button id="save-record" type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Guardando...' : 'Guardar Registro'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ============================
+// KPI Card
+// ============================
+function KpiCard({
+  label, value, color, sub, trend
+}: {
+  label: string
+  value: string
+  color: string
+  sub?: string
+  trend?: 'up' | 'down' | 'neutral'
+}) {
+  return (
+    <div className="kpi-card glass-panel">
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-value">{value}</div>
+      {(sub || trend) && (
+        <div className={`kpi-trend trend-${trend || 'neutral'}`}>
+          {trend === 'up' && '↑'} {trend === 'down' && '↓'} {sub}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================
+// Main Dashboard
+// ============================
+export default function DashboardClient() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [selectedProductId, setSelectedProductId] = useState<string>('all')
+  const [records, setRecords] = useState<RawRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [serverError, setServerError] = useState<string | null>(null)
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
+    setServerError(null)
+    try {
+      const [prodRes, recRes] = await Promise.all([
+        fetch('/api/products'),
+        fetch(selectedProductId === 'all' ? '/api/records' : `/api/records?productId=${selectedProductId}`)
+      ])
+      
+      let prodData = []
+      let recData = []
+
+      if (prodRes.ok) {
+        try {
+          prodData = await prodRes.json()
+        } catch (e) {
+          console.error('Error parsing products JSON:', e)
+        }
+      } else {
+        const err = await prodRes.json().catch(() => ({}))
+        setServerError(err.error || `Error ${prodRes.status}: No se pudo cargar productos`)
+      }
+
+      if (recRes.ok) {
+        try {
+          recData = await recRes.json()
+        } catch (e) {
+          console.error('Error parsing records JSON:', e)
+        }
+      } else {
+        const err = await recRes.json().catch(() => ({}))
+        setServerError(prev => prev || err.error || `Error ${recRes.status}: No se pudo cargar registros`)
+      }
+
+      setProducts(Array.isArray(prodData) ? prodData : [])
+      
+      // Bridge new field names to legacy field names for dashboard compatibility
+      const bridgedRecords = Array.isArray(recData) ? recData.map((r: any) => ({
+        ...r,
+        orders: r.orders || (Number(r.ordersReceived1 || 0) + Number(r.ordersReceived2 || 0)),
+        delivered: r.delivered || (Number(r.ordersDelivered1 || 0) + Number(r.ordersDelivered2 || 0)),
+        rejected: r.rejected || (Number(r.returns || 0)), // Using returns as a proxy for rejected for dashboard simplicity
+        fixedCosts: Number(r.fixedCosts || 0)
+      })) : []
+
+      setRecords(bridgedRecords)
+    } catch (e) {
+      console.error('Fetch error:', e)
+    }
+    setLoading(false)
+  }, [selectedProductId])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Seguro que quieres eliminar este registro?')) return
+    setDeleting(id)
+    await fetch(`/api/records/${id}`, { method: 'DELETE' })
+    await fetchAll()
+    setDeleting(null)
+  }
+
+  // Multi-Product Aggregate Logic
+  const metrics = useMemo(() => {
+    if (!records.length) return []
+    
+    if (selectedProductId !== 'all') {
+      const product = products.find(p => p.id === selectedProductId)
+      return calculateAllMetrics(
+        records.map(r => ({ ...r, product: r.product, productName: r.product.name })),
+        product || undefined
+      )
+    } else {
+      const grouped: Record<string, any> = {}
+      records.forEach(r => {
+        const d = r.date.split('T')[0]
+        if (!grouped[d]) {
+          grouped[d] = {
+            date: d,
+            orders: 0, delivered: 0, rejected: 0, adsSpend: 0,
+            revenue: 0, profit: 0, totalCost: 0
+          }
+        }
+        const m = calculateAllMetrics([r], r.product)[0]
+        grouped[d].orders += m.orders
+        grouped[d].delivered += m.delivered
+        grouped[d].rejected += m.rejected
+        grouped[d].adsSpend += m.adsSpend
+        grouped[d].revenue += m.revenue
+        grouped[d].profit += m.profit
+        grouped[d].totalCost += m.totalCost
+      })
+
+      const final = Object.values(grouped).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      let cum = 0
+      return final.map(d => {
+        cum += d.profit
+        return {
+          ...d,
+          cumulativeProfit: cum,
+          deliveryRate: d.orders > 0 ? (d.delivered / d.orders) * 100 : 0,
+          cpa: d.orders > 0 ? d.adsSpend / d.orders : 0,
+          roas: d.adsSpend > 0 ? d.revenue / d.adsSpend : 0,
+          marginPerDelivered: d.delivered > 0 ? (d.revenue - d.totalCost) / d.delivered : 0
+        }
+      }) as DailyMetrics[]
+    }
+  }, [records, selectedProductId, products])
+
+  const alerts = useMemo(() => getSummaryAlerts(metrics), [metrics])
+
+  // Summary KPIs
+  const last = metrics[metrics.length - 1]
+  const totalRevenue = metrics.reduce((s, m) => s + m.revenue, 0)
+  const totalProfit = metrics[metrics.length - 1]?.cumulativeProfit ?? 0
+  const totalOrders = metrics.reduce((s, m) => s + m.orders, 0)
+  const avgDelivery = metrics.length > 0
+    ? metrics.reduce((s, m) => s + m.deliveryRate, 0) / metrics.length
+    : 0
+  const avgROAS = metrics.length > 0
+    ? metrics.reduce((s, m) => s + (m.roas || 0), 0) / metrics.length
+    : 0
+
+  return (
+    <>
+      {showModal && (
+        <QuickEntryModal
+          products={products}
+          onClose={() => setShowModal(false)}
+          onSaved={fetchAll}
+        />
+      )}
+
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Panel de Control</h1>
+          <p className="page-subtitle">
+            {selectedProductId === 'all' ? 'Vista general del negocio' : `Analizando nodo: ${products.find(p => p.id === selectedProductId)?.name}`}
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <select 
+            className="form-input" 
+            style={{ width: '220px', fontSize: '0.9rem' }}
+            value={selectedProductId}
+            onChange={e => setSelectedProductId(e.target.value)}
+          >
+            <option value="all">Todos los productos</option>
+            {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            Nuevo Registro
+          </button>
+        </div>
+      </div>
+
+      {/* Error State */}
+      {serverError && (
+        <div className="alert-banner critical" style={{ marginBottom: '2rem' }}>
+          <div className="alert-content">
+            <p className="alert-title">Error de Conexión</p>
+            <p className="alert-detail">{serverError}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State / No products */}
+      {!loading && products.length === 0 && (
+        <div className="alert-banner critical" style={{ marginBottom: '2rem' }}>
+          <div className="alert-content">
+            <p className="alert-title">Configuración necesaria</p>
+            <p className="alert-detail">Crea tu primer producto en la sección de configuración para empezar.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Alerts */}
+      {alerts.length > 0 && (
+        <div className="alerts-container" style={{ marginBottom: '2rem' }}>
+          {alerts.map((a, i) => (
+            <div key={i} className={`alert-banner ${a.severity}`}>
+              <div className="alert-content">
+                <p className="alert-title">{a.message}</p>
+                {a.detail && <p className="alert-detail">{a.detail}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* KPIs */}
+      {loading ? (
+        <div className="empty-state"><div className="spinner" style={{ width: 40, height: 40, border: '3px solid rgba(123, 97, 255, 0.2)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} /></div>
+      ) : metrics.length === 0 ? (
+        <div className="empty-state glass-panel" style={{ padding: '4rem' }}>
+          <span style={{ fontSize: '3rem', marginBottom: '1rem' }}>📦</span>
+          <p className="page-title" style={{ fontSize: '1.25rem' }}>No hay datos suficientes</p>
+          <p className="page-subtitle">Registra tu primera venta para ver el análisis.</p>
+        </div>
+      ) : (
+        <>
+          <div className="kpi-grid">
+            <KpiCard label="Beneficio Acumulado" value={formatCurrency(totalProfit)}
+              color="var(--color-primary)" trend={totalProfit >= 0 ? 'up' : 'down'} sub={`${metrics.length} días`} />
+            <KpiCard label="Ingresos Brutos" value={formatCurrency(totalRevenue)} color="var(--color-info)" />
+            <KpiCard label="Total Pedidos" value={totalOrders.toString()} color="var(--color-primary-light)" />
+            <KpiCard label="Tasa de Entrega" value={formatPercent(avgDelivery)}
+              color="var(--color-success)" trend={avgDelivery >= 70 ? 'up' : 'down'} />
+            <KpiCard label="ROAS Promedio" value={avgROAS.toFixed(2) + 'x'} color="var(--color-primary)" />
+            {last && (
+              <KpiCard label="Último Beneficio" value={formatCurrency(last.profit)}
+                color="var(--color-primary)" sub={`CPA: ${formatCurrency(last.cpa)}`} />
+            )}
+          </div>
+
+          <div className="charts-grid">
+            <div className="chart-card glass-panel">
+              <div className="chart-header"><span className="chart-title">Ingresos vs Costes</span></div>
+              <div className="chart-body" style={{ height: '300px' }}><RevenueVsCostChart metrics={metrics} /></div>
+            </div>
+            <div className="chart-card glass-panel">
+              <div className="chart-header"><span className="chart-title">Curva de Crecimiento</span></div>
+              <div className="chart-body" style={{ height: '300px' }}><CumulativeProfitChart metrics={metrics} /></div>
+            </div>
+            <div className="chart-card glass-panel">
+              <div className="chart-header"><span className="chart-title">Embudo de Despacho</span></div>
+              <div className="chart-body" style={{ height: '300px' }}><OrdersVsDeliveredChart metrics={metrics} /></div>
+            </div>
+            <div className="chart-card glass-panel">
+              <div className="chart-header"><span className="chart-title">Eficiencia de Entrega</span></div>
+              <div className="chart-body" style={{ height: '300px' }}><DeliveryRateChart metrics={metrics} /></div>
+            </div>
+          </div>
+
+          <div className="table-wrapper glass-panel" style={{ marginTop: '3rem' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  {selectedProductId === 'all' && <th>Producto</th>}
+                  <th>Pedidos</th>
+                  <th>Entregados</th>
+                  <th>Ingresos</th>
+                  <th>Beneficio</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {records.slice(-10).reverse().map(r => {
+                  const m = calculateAllMetrics([r], r.product)[0]
+                  const st = getDayStatus(m)
+                  return (
+                    <tr key={r.id}>
+                      <td style={{ fontWeight: 500 }}>{new Date(r.date).toLocaleDateString()}</td>
+                      {selectedProductId === 'all' && <td style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{r.product.name}</td>}
+                      <td>{r.orders}</td>
+                      <td>{r.delivered}</td>
+                      <td style={{ fontWeight: 600 }}>{formatCurrency(m.revenue)}</td>
+                      <td style={{ color: m.profit >= 0 ? '#27ae60' : '#e74c3c', fontWeight: 600 }}>{formatCurrency(m.profit)}</td>
+                      <td><span className={`status-badge ${st.status}`}>{st.label}</span></td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleDelete(r.id)}>✕</button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {/* Asistente IA */}
+      <AIAssistant context={{ metrics, products, totalProfit }} />
+
+      <style jsx>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
+    </>
+  )
+}

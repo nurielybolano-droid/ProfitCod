@@ -1,0 +1,102 @@
+generator client {
+  provider        = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["junior"]
+}
+
+model User {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  password      String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  products      Product[]
+  dailyRecords  DailyRecord[]
+
+  @@schema("junior")
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  name            String
+  pvp             Float    // Precio de venta
+  costProduct     Float    // Coste neto por unidad (sin IVA proveedor)
+  iva             Float    @default(0)   // IVA cobrado al cliente (%)
+  cpa             Float    @default(0)   // CPA objetivo (€)
+  costShipping    Float    // Gastos de envío
+  feeCod          Float    // Fee Envío COD
+  rateShipping    Float    @default(100) // % Envío (0-100)
+  rateDelivery    Float    @default(100) // % Entrega (0-100)
+  rateReturn      Float    @default(0)   // % Devolución (0-100)
+  units           Int      @default(1)   // Número de unidades por pack
+  fixedCostDaily  Float    @default(0)   // Coste fijo diario (legado)
+  marginTarget    Float?                 // Margen objetivo % (legado)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Registros donde es el producto principal (1ud)
+  dailyRecords    DailyRecord[] @relation("RecordProduct1")
+  // Registros donde es el producto secundario (2ud)
+  dailyRecords2   DailyRecord[] @relation("RecordProduct2")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@schema("junior")
+}
+
+model DailyRecord {
+  id   String   @id @default(cuid())
+  date DateTime @db.Date
+
+  // ── Producto principal (1 unidad) ──────────────────────────────
+  productId  String
+  product    Product  @relation("RecordProduct1", fields: [productId], references: [id], onDelete: Cascade)
+
+  // ── Producto secundario (2 unidades, opcional) ─────────────────
+  product2Id String?
+  product2   Product? @relation("RecordProduct2", fields: [product2Id], references: [id], onDelete: SetNull)
+
+  // ── Pedidos Recibidos ──────────────────────────────────────────
+  ordersReceived1   Int   @default(0) // Pedidos Recibidos 1ud
+  ordersReceived2   Int   @default(0) // Pedidos Recibidos 2ud
+
+  // ── Pedidos Confirmados ────────────────────────────────────────
+  ordersConfirmed1  Int   @default(0) // Pedidos Confirmados 1ud
+  ordersConfirmed2  Int   @default(0) // Pedidos Confirmados 2ud
+
+  // ── Pedidos Enviados ───────────────────────────────────────────
+  ordersShipped     Int   @default(0) // Pedidos Enviados (total)
+
+  // ── Pedidos Entregados ─────────────────────────────────────────
+  ordersDelivered1  Int   @default(0) // Pedidos Entregados 1ud
+  ordersDelivered2  Int   @default(0) // Pedidos Entregados 2ud
+  returns           Int   @default(0) // Devoluciones
+
+  // ── Costes / Gastos ────────────────────────────────────────────
+  adsSpend          Float              // Publicidad (€)
+  fixedCosts        Float @default(0)  // Gastos Fijos (€)
+
+  notes   String?
+
+  // ── Legado (compatibilidad hacia atrás) ────────────────────────
+  orders    Int   @default(0)
+  delivered Int   @default(0)
+  rejected  Int   @default(0)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, date])
+  @@index([userId, date])
+  @@schema("junior")
+}
