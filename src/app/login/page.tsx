@@ -23,9 +23,14 @@ export default function LoginPage() {
     })
 
     setLoading(false)
+    console.log('Login result:', result)
 
     if (result?.error) {
-      setError('Credenciales inválidas')
+      if (result.error === 'CredentialsSignin') {
+        setError('Credenciales incorrectas. Revisa tu email y contraseña.')
+      } else {
+        setError('Error al iniciar sesión: ' + result.error)
+      }
     } else {
       router.push('/dashboard')
       router.refresh()
