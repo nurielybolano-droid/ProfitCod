@@ -27,7 +27,11 @@ export default function LoginPage() {
 
       console.log('Login result:', result)
 
-      if (result?.error) {
+      if (!result) {
+        throw new Error('No se recibió respuesta del servidor de autenticación. Posible error de configuración.')
+      }
+
+      if (result.error) {
         if (result.error === 'CredentialsSignin') {
           setError('Credenciales incorrectas. Revisa tu email y contraseña.')
         } else {
