@@ -414,7 +414,7 @@ export default function RecordsPage() {
                             {m.recordId && (
                                 <>
                                     <button className="td-btn-edit" onClick={() => loadEdit(records.find(r => r.id === m.recordId)!)}><Edit2 size={12} /></button>
-                                    <button className="td-btn-del"  onClick={() => handleDelete(m.recordId)}><Trash2 size={12} /></button>
+                                    <button className="td-btn-del"  onClick={() => handleDelete(m.recordId!)}><Trash2 size={12} /></button>
                                 </>
                             )}
                           </div>
