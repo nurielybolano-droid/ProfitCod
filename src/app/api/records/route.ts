@@ -4,8 +4,8 @@ import { NextResponse } from 'next/server'
 
 const PRODUCT_SELECT = {
   id: true, name: true, pvp: true, costProduct: true, units: true,
-  costShipping: true, feeCod: true, iva: true, cpa: true,
-  rateShipping: true, rateDelivery: true, fixedCostDaily: true,
+  costEnvio: true, feeCod: true, iva: true, cpa: true,
+  rateShipping: true, rateDelivery: true, costReturn: true, fixedCostDaily: true,
 } as const
 
 export const GET = auth(async (req) => {
@@ -16,7 +16,15 @@ export const GET = auth(async (req) => {
 
   try {
     const records = await prisma.dailyRecord.findMany({
-      where: { userId, ...(productId ? { productId } : {}) },
+      where: { 
+        userId, 
+        ...(productId ? { 
+          OR: [
+            { productId },
+            { product2Id: productId }
+          ]
+        } : {}) 
+      },
       include: {
         product:  { select: PRODUCT_SELECT },
         product2: { select: PRODUCT_SELECT },

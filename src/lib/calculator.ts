@@ -3,8 +3,14 @@ export interface ProductConfig {
   name: string
   pvp: number
   costProduct: number
-  costShipping: number
+  iva: number
+  cpa: number
+  costEnvio: number
   feeCod: number
+  rateShipping: number
+  rateDelivery: number
+  costReturn: number
+  units: number
   fixedCostDaily: number
   marginTarget?: number | null
 }
@@ -64,75 +70,107 @@ export interface DailyMetrics {
   marginPerDelivered: number
   
   cumulativeProfit?: number
+  recordId?: string
+  productId?: string
 }
 
 /**
  * Calculates metrics for a specific day and product(s)
+ * returns an array of metrics (one per product variant)
  */
 export function calculateMetrics(
   record: DailyRecord
-): Omit<DailyMetrics, 'cumulativeProfit'> {
+): Omit<DailyMetrics, 'cumulativeProfit'>[] {
   const p1 = record.product
-  const p2 = record.product2 || p1 // Default to p1 if p2 not specified
+  const p2 = record.product2
   
-  const d1 = Number(record.ordersDelivered1 || 0)
-  const d2 = Number(record.ordersDelivered2 || 0)
-  const shipped = Number(record.ordersShipped || 0)
-  const receivedTotal = Number(record.ordersReceived1 || 0) + Number(record.ordersReceived2 || 0)
-  const confirmedTotal = Number(record.ordersConfirmed1 || 0) + Number(record.ordersConfirmed2 || 0)
-  const deliveredTotal = d1 + d2
+  const r1 = Number(record.ordersReceived1 || 0)
+  const r2 = Number(record.ordersReceived2 || 0)
+  const receivedTotal = r1 + r2
   
-  // 1. Revenue (Delivered units * their respective PVP)
-  const revenue = (d1 * (p1.pvp || 0)) + (d2 * (p2.pvp || 0))
-  
-  // 2. COGS (Delivered units * their respective Cost)
-  const totalCogs = (d1 * (p1.costProduct || 0)) + (d2 * (p2.costProduct || 0))
-  
-  // 3. Shipping (Shipped orders * Shipping fee of main product)
-  // We assume 1 order = 1 shipping fee even if multi-unit
-  const totalShippingCost = shipped * (p1.costShipping || 0)
-  
-  // 4. COD Fee (Delivered orders * COD fee)
-  const totalCodFee = deliveredTotal * (p1.feeCod || 0)
-  
-  // 5. Total Investment
-  const adsSpend = Number(record.adsSpend || 0)
-  const fixedCosts = Number(record.fixedCosts || 0)
-  const totalInvestment = adsSpend + fixedCosts + totalShippingCost + totalCodFee + totalCogs
-  
-  // 6. Profit
-  const profit = revenue - totalInvestment
-  
-  // 7. Ratios
-  const deliveryRate = receivedTotal > 0 ? (deliveredTotal / receivedTotal) * 100 : 0
-  const returnRate = shipped > 0 ? (Number(record.returns || 0) / shipped) * 100 : 0
-  const cpa = receivedTotal > 0 ? adsSpend / receivedTotal : 0
-  const roas = adsSpend > 0 ? revenue / adsSpend : 0
-  const marginPerDelivered = deliveredTotal > 0 ? profit / deliveredTotal : 0
-
-  return {
-    date: record.date,
-    orders: receivedTotal,
-    confirmed: confirmedTotal,
-    shipped,
-    delivered: deliveredTotal,
-    returns: Number(record.returns || 0),
-    adsSpend,
-    fixedCosts,
-    notes: record.notes,
-    productName: p1.name,
-    totalCogs,
-    totalShippingCost,
-    totalCodFee,
-    totalInvestment,
-    revenue,
-    profit,
-    deliveryRate,
-    returnRate,
-    cpa,
-    roas,
-    marginPerDelivered
+  const ratios = {
+    p1: receivedTotal > 0 ? r1 / receivedTotal : 1, // If both 0, assign all to p1
+    p2: receivedTotal > 0 ? r2 / receivedTotal : 0
   }
+
+  const results: Omit<DailyMetrics, 'cumulativeProfit'>[] = []
+
+  // Helper to calculate for one variant
+  const calcVariant = (
+    p: ProductConfig, 
+    received: number, 
+    confirmed: number, 
+    delivered: number, 
+    ratio: number,
+    isSecond: boolean
+  ) => {
+    // Proportional split for shared fields
+    // NOTE: returns and shipped are total per day, we split them by ratio
+    const vShipped = Math.round(Number(record.ordersShipped || 0) * ratio)
+    const vReturns = Math.round(Number(record.returns || 0) * ratio)
+    const vAdsSpend = Number(record.adsSpend || 0) * ratio
+    const vFixedCosts = (Number(record.fixedCosts || 0) + (p.fixedCostDaily || 0)) * ratio
+
+    const revenue = delivered * (p.pvp || 0)
+    const totalIvaSale = delivered * (p.costProduct || 0) * (p.units || 1) * ((p.iva || 0) / 100)
+    const totalCogs = delivered * (p.costProduct || 0) * (p.units || 1)
+    
+    const vEnvioCost = received * (p.costEnvio || 0)
+    const vCodFee = vShipped * (p.feeCod || 0)
+    const vReturnCost = vReturns * (p.costReturn || 0)
+    const vLogistics = vEnvioCost + vCodFee + vReturnCost
+    
+    const totalInvestment = vAdsSpend + vFixedCosts + vLogistics + totalCogs + totalIvaSale
+    const profit = revenue - totalInvestment
+    
+    return {
+      recordId: record.id,
+      productId: p.id,
+      date: record.date,
+      orders: received,
+      confirmed,
+      shipped: vShipped,
+      delivered,
+      returns: vReturns,
+      adsSpend: vAdsSpend,
+      fixedCosts: vFixedCosts,
+      notes: record.notes,
+      productName: p.name,
+      totalCogs,
+      totalShippingCost: vEnvioCost,
+      totalCodFee: vCodFee,
+      totalInvestment,
+      revenue,
+      profit,
+      deliveryRate: received > 0 ? (delivered / received) * 100 : 0,
+      returnRate: vShipped > 0 ? (vReturns / vShipped) * 100 : 0,
+      cpa: received > 0 ? vAdsSpend / received : 0,
+      roas: vAdsSpend > 0 ? revenue / vAdsSpend : 0,
+      marginPerDelivered: delivered > 0 ? profit / delivered : 0
+    }
+  }
+
+  // Add P1
+  results.push(calcVariant(
+    p1, r1, 
+    Number(record.ordersConfirmed1 || 0), 
+    Number(record.ordersDelivered1 || 0), 
+    ratios.p1, 
+    false
+  ))
+
+  // Add P2 if it exists and has activity or exists as a different product
+  if (p2 && p2.id !== p1.id) {
+    results.push(calcVariant(
+      p2, r2, 
+      Number(record.ordersConfirmed2 || 0), 
+      Number(record.ordersDelivered2 || 0), 
+      ratios.p2, 
+      true
+    ))
+  }
+
+  return results
 }
 
 /**
@@ -146,8 +184,9 @@ export function calculateAllMetrics(
   // Sort by date 
   const sortedRecords = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-  return sortedRecords.map((record) => {
-    // If it's a legacy record without granular fields, try to bridge it
+  const allMetrics: DailyMetrics[] = []
+
+  sortedRecords.forEach((record) => {
     const normalizedRecord: DailyRecord = {
       ...record,
       ordersReceived1: record.ordersReceived1 ?? record.orders ?? 0,
@@ -160,13 +199,17 @@ export function calculateAllMetrics(
       product2: record.product2 || null
     }
 
-    const metrics = calculateMetrics(normalizedRecord)
-    cumulative += metrics.profit
-    return {
-      ...metrics,
-      cumulativeProfit: cumulative,
-    }
+    const dayMetricsList = calculateMetrics(normalizedRecord)
+    dayMetricsList.forEach(m => {
+      cumulative += m.profit
+      allMetrics.push({
+        ...m,
+        cumulativeProfit: cumulative
+      })
+    })
   })
+
+  return allMetrics
 }
 
 export function formatCurrency(value: number): string {

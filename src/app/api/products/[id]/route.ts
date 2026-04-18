@@ -13,9 +13,9 @@ export const PUT = auth(async (req, { params }) => {
     const body = await req.json()
     const {
       name, pvp, costProduct, iva, cpa,
-      costShipping, feeCod,
-      rateShipping, rateDelivery, rateReturn,
-      units,
+      costEnvio, feeCod,
+      rateShipping, rateDelivery, costReturn,
+      units, fixedCostDaily
     } = body
 
     const product = await prisma.product.update({
@@ -26,12 +26,13 @@ export const PUT = auth(async (req, { params }) => {
         costProduct:  costProduct  != null ? Number(costProduct)  : undefined,
         iva:          iva          != null ? Number(iva)          : undefined,
         cpa:          cpa          != null ? Number(cpa)          : undefined,
-        costShipping: costShipping != null ? Number(costShipping) : undefined,
+        costEnvio:    costEnvio    != null ? Number(costEnvio)    : undefined,
         feeCod:       feeCod       != null ? Number(feeCod)       : undefined,
         rateShipping: rateShipping != null ? Number(rateShipping) : undefined,
         rateDelivery: rateDelivery != null ? Number(rateDelivery) : undefined,
-        rateReturn:   rateReturn   != null ? Number(rateReturn)   : undefined,
+        costReturn:   costReturn   != null ? Number(costReturn)   : undefined,
         units:        units        != null ? Number(units)        : undefined,
+        fixedCostDaily: fixedCostDaily != null ? Number(fixedCostDaily) : undefined,
       },
     })
 

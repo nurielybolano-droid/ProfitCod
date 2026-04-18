@@ -34,12 +34,12 @@ export const POST = auth(async (req) => {
   const body = await req.json()
   const {
     name, pvp, costProduct, iva, cpa,
-    costShipping, feeCod,
-    rateShipping, rateDelivery, rateReturn,
-    units,
+    costEnvio, feeCod,
+    rateShipping, rateDelivery, costReturn,
+    units, fixedCostDaily
   } = body
 
-  if (!name || pvp == null || costProduct == null || costShipping == null || feeCod == null) {
+  if (!name || pvp == null || costProduct == null || costEnvio == null || feeCod == null) {
     return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
   }
 
@@ -52,12 +52,13 @@ export const POST = auth(async (req) => {
         costProduct:  Number(costProduct),
         iva:          Number(iva ?? 0),
         cpa:          Number(cpa ?? 0),
-        costShipping: Number(costShipping),
+        costEnvio:    Number(costEnvio),
         feeCod:       Number(feeCod),
         rateShipping: Number(rateShipping ?? 100),
         rateDelivery: Number(rateDelivery ?? 100),
-        rateReturn:   Number(rateReturn ?? 0),
+        costReturn:   Number(costReturn ?? 0),
         units:        Number(units ?? 1),
+        fixedCostDaily: Number(fixedCostDaily ?? 0),
       },
     })
 

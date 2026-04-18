@@ -44,3 +44,7 @@ next-env.d.ts
 
 # scratch
 /scratch/
+
+# Sensitive data
+*.xlsx
+prisma/schema_from_db.prisma

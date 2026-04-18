@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { ClipboardList, Inbox, CheckCircle, Truck, PackageCheck, Zap, Clipboard, Edit2, Trash2 } from 'lucide-react'
+import { calculateAllMetrics, calculateMetrics, DailyRecord } from '@/lib/calculator'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,50 +23,10 @@ interface RawRecord {
   returns: number; adsSpend: number; fixedCosts: number; notes?: string | null
 }
 
-// ─── Calculator ───────────────────────────────────────────────────────────────
-
-function calcRow(r: RawRecord, cumulativeProfit: number) {
-  const p1 = r.product;   const p2 = r.product2
-  const pvp1 = p1.pvp;    const pvp2 = p2?.pvp     ?? 0
-  const pp1  = p1.costProduct * (p1.units || 1) * 1.21
-  const pp2  = p2 ? p2.costProduct * (p2.units || 2) * 1.21 : 0
-
-  const totalRecibidos  = r.ordersReceived1  + r.ordersReceived2
-  const totalConfirmados = r.ordersConfirmed1 + r.ordersConfirmed2
-  const totalEntregados = r.ordersDelivered1 + r.ordersDelivered2
-
-  const pctConf     = totalRecibidos  > 0 ? (totalConfirmados / totalRecibidos) * 100 : 0
-  const pctEnvio    = totalRecibidos  > 0 ? (r.ordersShipped  / totalRecibidos) * 100 : 0
-
-  const factEstimada = r.ordersConfirmed1 * pvp1 + r.ordersConfirmed2 * pvp2
-  const pendiente    = r.ordersShipped - totalEntregados - r.returns
-  const factReal     = r.ordersDelivered1 * pvp1 + r.ordersDelivered2 * pvp2
-
-  const costeProd    = r.ordersDelivered1 * pp1 + r.ordersDelivered2 * pp2
-  const costeEnvio   = r.ordersShipped * p1.costShipping
-  const comisionCOD  = totalEntregados * p1.feeCod
-
-  const gastosTotales = costeProd + costeEnvio + comisionCOD + r.adsSpend + r.fixedCosts
-  const beneficioNeto = factReal - gastosTotales
-  const resultAcum    = cumulativeProfit + beneficioNeto
-
-  const roi           = gastosTotales > 0  ? (beneficioNeto / gastosTotales) * 100 : 0
-  const cpaEstimado   = totalRecibidos  > 0 ? r.adsSpend / totalRecibidos  : 0
-  const cpaReal       = totalEntregados > 0 ? r.adsSpend / totalEntregados : 0
-  const tasaEntrega   = r.ordersShipped > 0 ? (totalEntregados / r.ordersShipped) * 100 : 0
-
-  return {
-    totalRecibidos, totalConfirmados, totalEntregados,
-    pctConf, pctEnvio, factEstimada, pendiente, factReal,
-    costeProd, costeEnvio, comisionCOD,
-    gastosTotales, beneficioNeto, resultAcum,
-    roi, cpaEstimado, cpaReal, tasaEntrega,
-  }
-}
 
 function n(v: string) { return parseFloat(v) || 0 }
-function f2(v: number) { return v.toFixed(2) }
-function f1(v: number) { return v.toFixed(1) }
+function f2(v: number | undefined) { return (v ?? 0).toFixed(2) }
+function f1(v: number | undefined) { return (v ?? 0).toFixed(1) }
 
 // ─── Empty Form ───────────────────────────────────────────────────────────────
 
@@ -96,27 +58,48 @@ export default function RecordsPage() {
   // ── Live preview metrics ──
   const preview = useMemo(() => {
     if (!prod1) return null
-    const mock: RawRecord = {
-      id: '__preview', date: form.date,
-      productId: form.productId, product: prod1 as ProductInfo,
-      product2Id: form.product2Id || undefined, product2: prod2 as ProductInfo | null,
-      ordersReceived1:  n(form.ordersReceived1),  ordersReceived2:  n(form.ordersReceived2),
-      ordersConfirmed1: n(form.ordersConfirmed1), ordersConfirmed2: n(form.ordersConfirmed2),
+    const mock: any = {
+      id: '__preview', 
+      date: form.date,
+      product: prod1,
+      product2: prod2 || null,
+      ordersReceived1:  n(form.ordersReceived1),  
+      ordersReceived2:  n(form.ordersReceived2),
+      ordersConfirmed1: n(form.ordersConfirmed1), 
+      ordersConfirmed2: n(form.ordersConfirmed2),
       ordersShipped:    n(form.ordersShipped),
-      ordersDelivered1: n(form.ordersDelivered1), ordersDelivered2: n(form.ordersDelivered2),
-      returns: n(form.returns), adsSpend: n(form.adsSpend), fixedCosts: n(form.fixedCosts),
+      ordersDelivered1: n(form.ordersDelivered1), 
+      ordersDelivered2: n(form.ordersDelivered2),
+      returns: n(form.returns), 
+      adsSpend: n(form.adsSpend), 
+      fixedCosts: n(form.fixedCosts),
     }
-    return calcRow(mock, 0)
+    const res = calculateMetrics(mock)
+    // Combine results for preview total
+    if (res.length > 1) {
+       return {
+         ...res[0],
+         orders: res[0].orders + res[1].orders,
+         revenue: res[0].revenue + res[1].revenue,
+         profit: res[0].profit + res[1].profit,
+         totalInvestment: res[0].totalInvestment + res[1].totalInvestment,
+         totalCogs: res[0].totalCogs + res[1].totalCogs,
+         totalShippingCost: res[0].totalShippingCost + res[1].totalShippingCost,
+         totalCodFee: res[0].totalCodFee + res[1].totalCodFee,
+         delivered: res[0].delivered + res[1].delivered,
+         shipped: res[0].shipped + res[1].shipped,
+         returns: res[0].returns + res[1].returns,
+         // Weighted averages/ratios
+         deliveryRate: (res[0].delivered + res[1].delivered) / (res[0].orders + res[1].orders) * 100 || 0,
+         roi: (res[0].profit + res[1].profit) / (res[0].totalInvestment + res[1].totalInvestment) * 100 || 0,
+       }
+    }
+    return res[0]
   }, [form, prod1, prod2])
 
   // ── Rows with cumulative profit ──
   const rows = useMemo(() => {
-    let acc = 0
-    return records.map(r => {
-      const calc = calcRow(r, acc)
-      acc = calc.resultAcum
-      return { r, calc }
-    })
+    return calculateAllMetrics(records)
   }, [records])
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
@@ -210,7 +193,7 @@ export default function RecordsPage() {
 
             <form onSubmit={handleSubmit} noValidate>
               {/* ── General ── */}
-              <SL>📋 General</SL>
+              <SL><ClipboardList size={14} style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '4px' }} /> General</SL>
               <div className="form-group">
                 <label className="form-label">Producto Principal (1 unidad)</label>
                 <select className="form-input" value={form.productId} onChange={set('productId')} required>
@@ -249,7 +232,7 @@ export default function RecordsPage() {
               </div>
 
               {/* ── Recibidos ── */}
-              <SL>📥 Pedidos Recibidos</SL>
+              <SL><Inbox size={14} style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '4px' }} /> Pedidos Recibidos</SL>
               <div className="form-grid-2">
                 <div className="form-group">
                   <label className="form-label">Recibidos 1ud</label>
@@ -262,7 +245,7 @@ export default function RecordsPage() {
               </div>
 
               {/* ── Confirmados ── */}
-              <SL>✅ Pedidos Confirmados</SL>
+              <SL><CheckCircle size={14} style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '4px' }} /> Pedidos Confirmados</SL>
               <div className="form-grid-2">
                 <div className="form-group">
                   <label className="form-label">Confirmados 1ud</label>
@@ -275,14 +258,14 @@ export default function RecordsPage() {
               </div>
 
               {/* ── Enviados ── */}
-              <SL>🚚 Pedidos Enviados</SL>
+              <SL><Truck size={14} style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '4px' }} /> Pedidos Enviados</SL>
               <div className="form-group">
                 <label className="form-label">Total Enviados</label>
                 <input type="number" min="0" className="form-input" placeholder="0" value={form.ordersShipped} onChange={set('ordersShipped')} />
               </div>
 
               {/* ── Entregados ── */}
-              <SL>📦 Pedidos Entregados</SL>
+              <SL><PackageCheck size={14} style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '4px' }} /> Pedidos Entregados</SL>
               <div className="form-grid-3">
                 <div className="form-group">
                   <label className="form-label">Entregados 1ud</label>
@@ -314,7 +297,9 @@ export default function RecordsPage() {
           {/* ── Live Preview ── */}
           {preview && (
             <div className="glass-panel rec-preview-card">
-              <div className="rec-preview-title">⚡ Vista Previa del Registro</div>
+              <div className="rec-preview-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Zap size={16} style={{ color: 'var(--color-primary)' }} /> Vista Previa del Registro
+              </div>
               <div className="rec-preview-grid">
                 <PreviewCell label="Recibidos"    value={String(preview.totalRecibidos)} />
                 <PreviewCell label="% Conf."      value={`${f1(preview.pctConf)}%`} />
@@ -341,8 +326,8 @@ export default function RecordsPage() {
           {loading ? (
             <div className="rec-spinner-wrap"><div className="rec-spinner" /></div>
           ) : records.length === 0 ? (
-            <div className="glass-panel rec-empty">
-              <span className="rec-empty-icon">📋</span>
+            <div className="glass-panel rec-empty" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+              <Clipboard size={32} style={{ color: 'var(--color-text-muted)', margin: '0 auto 1rem' }} />
               <p>No hay registros aún.</p>
             </div>
           ) : (
@@ -383,42 +368,46 @@ export default function RecordsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map(({ r, calc }) => (
-                      <tr key={r.id}>
-                        <td className="td-sticky td-date">{new Date(r.date).toLocaleDateString('es-ES')}</td>
+                    {rows.map((m, idx) => (
+                      <tr key={`${m.recordId}-${idx}`}>
+                        <td className="td-sticky td-date">{new Date(m.date).toLocaleDateString('es-ES')}</td>
                         <td className="td-sticky td-product">
-                          <div className="td-product-name">{r.product.name}</div>
-                          {r.product2 && <div className="td-product-badge">{r.product2.name}</div>}
+                          <div className="td-product-name">{m.productName}</div>
                         </td>
-                        <td>{r.ordersReceived1}</td>
-                        <td>{r.ordersReceived2}</td>
-                        <td>{r.ordersConfirmed1}</td>
-                        <td>{r.ordersConfirmed2}</td>
-                        <td className="td-calc">{f1(calc.pctConf)}%</td>
-                        <td>{r.ordersShipped}</td>
-                        <td className="td-calc">{f1(calc.pctEnvio)}%</td>
-                        <td className="td-calc td-money">{f2(calc.factEstimada)} €</td>
-                        <td>{r.ordersDelivered1}</td>
-                        <td>{r.ordersDelivered2}</td>
-                        <td className="td-calc">{calc.pendiente}</td>
-                        <td className="td-calc td-money">{f2(calc.factReal)} €</td>
-                        <td className="td-calc td-money">{f2(calc.costeProd)} €</td>
-                        <td className="td-calc td-money">{f2(calc.costeEnvio)} €</td>
-                        <td className="td-calc td-money">{f2(calc.comisionCOD)} €</td>
-                        <td>{r.returns}</td>
-                        <td className="td-money">{f2(r.adsSpend)} €</td>
-                        <td className="td-money">{f2(r.fixedCosts)} €</td>
-                        <td className="td-calc td-money">{f2(calc.gastosTotales)} €</td>
-                        <td className={`td-kpi ${calc.beneficioNeto >= 0 ? 'td-pos' : 'td-neg'}`}>{f2(calc.beneficioNeto)} €</td>
-                        <td className={`td-kpi ${calc.resultAcum >= 0 ? 'td-pos' : 'td-neg'}`}>{f2(calc.resultAcum)} €</td>
-                        <td className={`td-kpi ${calc.roi >= 0 ? 'td-pos' : 'td-neg'}`}>{f1(calc.roi)}%</td>
-                        <td className="td-kpi">{f2(calc.cpaEstimado)} €</td>
-                        <td className="td-kpi">{f2(calc.cpaReal)} €</td>
-                        <td className={`td-kpi ${calc.tasaEntrega >= 70 ? 'td-pos' : 'td-neg'}`}>{f1(calc.tasaEntrega)}%</td>
+                        <td>{m.orders}</td>
+                        <td>{/* No longer showing 1ud/2ud separately in columns, each has its own row */} - </td>
+                        <td>{m.confirmed}</td>
+                        <td> - </td>
+                        <td className="td-calc">{f1(m.deliveryRate)}%</td>
+                        <td>{m.shipped}</td>
+                        <td className="td-calc">{f1((m.shipped / m.orders) * 100)}%</td>
+                        <td className="td-calc td-money">{f2(m.revenue)} €</td>
+                        <td>{m.delivered}</td>
+                        <td> - </td>
+                        <td className="td-calc">{m.shipped - m.delivered - m.returns}</td>
+                        <td className="td-calc td-money">{f2(m.revenue)} €</td>
+                        <td className="td-calc td-money">{f2(m.totalCogs)} €</td>
+                        <td className="td-calc td-money">{f2(m.totalShippingCost)} €</td>
+                        <td className="td-calc td-money">{f2(m.totalCodFee)} €</td>
+                        <td>{m.returns}</td>
+                        <td className="td-money">{f2(m.adsSpend)} €</td>
+                        <td className="td-money">{f2(m.fixedCosts)} €</td>
+                        <td className="td-calc td-money">{f2(m.totalInvestment)} €</td>
+                        <td className={`td-kpi ${m.profit >= 0 ? 'td-pos' : 'td-neg'}`}>{f2(m.profit)} €</td>
+                        <td className={`td-kpi ${m.cumulativeProfit! >= 0 ? 'td-pos' : 'td-neg'}`}>{f2(m.cumulativeProfit)} €</td>
+                        <td className={`td-kpi ${m.roas >= 0 ? 'td-pos' : 'td-neg'}`}>{f1(m.roas * 100)}%</td>
+                        <td className="td-kpi">{f2(m.cpa)} €</td>
+                        <td className="td-kpi">{f2(m.cpa)} €</td>
+                        <td className={`td-kpi ${m.deliveryRate >= 70 ? 'td-pos' : 'td-neg'}`}>{f1(m.deliveryRate)}%</td>
                         <td>
                           <div className="td-btns">
-                            <button className="td-btn-edit" onClick={() => loadEdit(r)}>✏️</button>
-                            <button className="td-btn-del"  onClick={() => handleDelete(r.id)}>✕</button>
+                            {/* Find original record for edit/delete */}
+                            {m.recordId && (
+                                <>
+                                    <button className="td-btn-edit" onClick={() => loadEdit(records.find(r => r.id === m.recordId)!)}><Edit2 size={12} /></button>
+                                    <button className="td-btn-del"  onClick={() => handleDelete(m.recordId)}><Trash2 size={12} /></button>
+                                </>
+                            )}
                           </div>
                         </td>
                       </tr>

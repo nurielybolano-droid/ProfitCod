@@ -11,6 +11,7 @@ import {
   CumulativeProfitChart,
 } from '@/components/Charts'
 import AIAssistant from '@/components/AIAssistant'
+import { Archive, Trash2 } from 'lucide-react'
 
 interface Product {
   id: string
@@ -332,8 +333,20 @@ export default function DashboardClient() {
   // Multi-Product Aggregate Logic
   const metrics = useMemo(() => {
     if (!records.length) return []
-    return calculateAllMetrics(records)
-  }, [records])
+    const allMetrics = calculateAllMetrics(records)
+    
+    // Filter by product if needed
+    const filtered = selectedProductId === 'all' 
+      ? allMetrics 
+      : allMetrics.filter(m => m.productId === selectedProductId)
+      
+    // Recalculate cumulative profit for the filtered set (for accurate charts)
+    let cumulative = 0
+    return filtered.map(m => {
+      cumulative += m.profit
+      return { ...m, cumulativeProfit: cumulative }
+    })
+  }, [records, selectedProductId])
 
   const alerts = useMemo(() => getSummaryAlerts(metrics), [metrics])
 
@@ -423,7 +436,7 @@ export default function DashboardClient() {
         <div className="empty-state"><div className="spinner" style={{ width: 40, height: 40, border: '3px solid rgba(123, 97, 255, 0.2)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} /></div>
       ) : metrics.length === 0 ? (
         <div className="empty-state glass-panel" style={{ padding: '4rem' }}>
-          <span style={{ fontSize: '3rem', marginBottom: '1rem' }}>📦</span>
+          <Archive size={48} style={{ color: 'var(--color-primary)', marginBottom: '1rem' }} />
           <p className="page-title" style={{ fontSize: '1.25rem' }}>No hay datos suficientes</p>
           <p className="page-subtitle">Registra tu primera venta para ver el análisis.</p>
         </div>
@@ -477,12 +490,10 @@ export default function DashboardClient() {
                 </tr>
               </thead>
               <tbody>
-                {metrics.slice(-10).reverse().map(m => {
+                {metrics.slice(-20).reverse().map((m, idx) => {
                   const st = getDayStatus(m)
-                  // Find original record ID for deletion
-                  const originalRecord = records.find(r => r.date.split('T')[0] === m.date.split('T')[0] && (selectedProductId === 'all' || r.productId === selectedProductId))
                   return (
-                    <tr key={m.date}>
+                    <tr key={`${m.recordId}-${idx}`}>
                       <td style={{ fontWeight: 500 }}>{new Date(m.date).toLocaleDateString()}</td>
                       {selectedProductId === 'all' && <td style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{m.productName}</td>}
                       <td>{m.orders}</td>
@@ -491,8 +502,8 @@ export default function DashboardClient() {
                       <td style={{ color: m.profit >= 0 ? '#27ae60' : '#e74c3c', fontWeight: 600 }}>{formatCurrency(m.profit)}</td>
                       <td><span className={`status-badge ${st.status}`}>{st.label}</span></td>
                       <td style={{ textAlign: 'right' }}>
-                        {originalRecord && (
-                          <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleDelete(originalRecord.id)}>✕</button>
+                        {m.recordId && (
+                          <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleDelete(m.recordId)}><Trash2 size={16} /></button>
                         )}
                       </td>
                     </tr>
