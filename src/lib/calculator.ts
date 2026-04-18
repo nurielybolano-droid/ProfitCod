@@ -16,6 +16,7 @@ export interface ProductConfig {
 }
 
 export interface DailyRecord {
+  id?: string
   date: string
   // Granular fields
   ordersReceived1: number
