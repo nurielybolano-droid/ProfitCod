@@ -18,7 +18,7 @@ interface Product {
   name: string
   pvp: number
   costProduct: number
-  costShipping: number
+  costEnvio: number
   feeCod: number
   fixedCostDaily: number
   marginTarget?: number | null

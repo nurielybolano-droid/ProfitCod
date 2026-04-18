@@ -8,7 +8,7 @@ import { calculateAllMetrics, calculateMetrics, DailyRecord } from '@/lib/calcul
 
 interface ProductInfo {
   id: string; name: string; pvp: number; costProduct: number; units: number
-  costShipping: number; feeCod: number; iva: number; cpa: number
+  costEnvio: number; feeCod: number; iva: number; cpa: number
   rateShipping: number; rateDelivery: number
 }
 
