@@ -77,21 +77,30 @@ export default function RecordsPage() {
     const res = calculateMetrics(mock)
     // Combine results for preview total
     if (res.length > 1) {
+       const totalOrders = res[0].orders + res[1].orders
+       const totalDelivered = res[0].delivered + res[1].delivered
+       const totalProfit = res[0].profit + res[1].profit
+       const totalInvestment = res[0].totalInvestment + res[1].totalInvestment
+       const totalAdsSpend = res[0].adsSpend + res[1].adsSpend
        return {
          ...res[0],
-         orders: res[0].orders + res[1].orders,
+         orders: totalOrders,
+         confirmed: res[0].confirmed + res[1].confirmed,
          revenue: res[0].revenue + res[1].revenue,
-         profit: res[0].profit + res[1].profit,
-         totalInvestment: res[0].totalInvestment + res[1].totalInvestment,
+         profit: totalProfit,
+         totalInvestment,
          totalCogs: res[0].totalCogs + res[1].totalCogs,
          totalShippingCost: res[0].totalShippingCost + res[1].totalShippingCost,
          totalCodFee: res[0].totalCodFee + res[1].totalCodFee,
-         delivered: res[0].delivered + res[1].delivered,
+         delivered: totalDelivered,
          shipped: res[0].shipped + res[1].shipped,
          returns: res[0].returns + res[1].returns,
-         // Weighted averages/ratios
-         deliveryRate: (res[0].delivered + res[1].delivered) / (res[0].orders + res[1].orders) * 100 || 0,
-         roi: (res[0].profit + res[1].profit) / (res[0].totalInvestment + res[1].totalInvestment) * 100 || 0,
+         adsSpend: totalAdsSpend,
+         // Derived ratios
+         deliveryRate: totalOrders > 0 ? (totalDelivered / totalOrders) * 100 : 0,
+         cpa: totalOrders > 0 ? totalAdsSpend / totalOrders : 0,
+         roas: totalAdsSpend > 0 ? (res[0].revenue + res[1].revenue) / totalAdsSpend : 0,
+         marginPerDelivered: totalDelivered > 0 ? totalProfit / totalDelivered : 0,
        }
     }
     return res[0]
@@ -301,21 +310,21 @@ export default function RecordsPage() {
                 <Zap size={16} style={{ color: 'var(--color-primary)' }} /> Vista Previa del Registro
               </div>
               <div className="rec-preview-grid">
-                <PreviewCell label="Recibidos"    value={String(preview.totalRecibidos)} />
-                <PreviewCell label="% Conf."      value={`${f1(preview.pctConf)}%`} />
-                <PreviewCell label="% Envío"      value={`${f1(preview.pctEnvio)}%`} />
-                <PreviewCell label="Pend. Entregar" value={String(preview.pendiente)} />
-                <PreviewCell label="Fact. Est."   value={`${f2(preview.factEstimada)} €`} color="blue" />
-                <PreviewCell label="Fact. Real"   value={`${f2(preview.factReal)} €`} color="blue" />
-                <PreviewCell label="Coste Prod."  value={`${f2(preview.costeProd)} €`} color="red" />
-                <PreviewCell label="Coste Envío"  value={`${f2(preview.costeEnvio)} €`} color="red" />
-                <PreviewCell label="Comisión COD" value={`${f2(preview.comisionCOD)} €`} color="red" />
-                <PreviewCell label="Gastos Tot."  value={`${f2(preview.gastosTotales)} €`} color="red" />
-                <PreviewCell label="Beneficio"    value={`${f2(preview.beneficioNeto)} €`} color={preview.beneficioNeto >= 0 ? 'green' : 'red'} />
-                <PreviewCell label="ROI"          value={`${f1(preview.roi)}%`} color={preview.roi >= 0 ? 'green' : 'red'} />
-                <PreviewCell label="CPA Est."     value={`${f2(preview.cpaEstimado)} €`} />
-                <PreviewCell label="CPA Real"     value={`${f2(preview.cpaReal)} €`} />
-                <PreviewCell label="Tasa Entrega" value={`${f1(preview.tasaEntrega)}%`} color={preview.tasaEntrega >= 70 ? 'green' : 'red'} />
+                <PreviewCell label="Recibidos"    value={String(preview.orders)} />
+                <PreviewCell label="% Conf."      value={`${f1(preview.confirmed > 0 && preview.orders > 0 ? (preview.confirmed / preview.orders) * 100 : 0)}%`} />
+                <PreviewCell label="% Envío"      value={`${f1(preview.shipped > 0 && preview.orders > 0 ? (preview.shipped / preview.orders) * 100 : 0)}%`} />
+                <PreviewCell label="Pend. Entregar" value={String(preview.shipped - preview.delivered - preview.returns)} />
+                <PreviewCell label="Fact. Est."   value={`${f2(preview.revenue)} €`} color="blue" />
+                <PreviewCell label="Fact. Real"   value={`${f2(preview.revenue)} €`} color="blue" />
+                <PreviewCell label="Coste Prod."  value={`${f2(preview.totalCogs)} €`} color="red" />
+                <PreviewCell label="Coste Envío"  value={`${f2(preview.totalShippingCost)} €`} color="red" />
+                <PreviewCell label="Comisión COD" value={`${f2(preview.totalCodFee)} €`} color="red" />
+                <PreviewCell label="Gastos Tot."  value={`${f2(preview.totalInvestment)} €`} color="red" />
+                <PreviewCell label="Beneficio"    value={`${f2(preview.profit)} €`} color={preview.profit >= 0 ? 'green' : 'red'} />
+                <PreviewCell label="ROI"          value={`${f1(preview.roas > 0 ? (preview.roas - 1) * 100 : 0)}%`} color={preview.profit >= 0 ? 'green' : 'red'} />
+                <PreviewCell label="CPA"          value={`${f2(preview.cpa)} €`} />
+                <PreviewCell label="Margen/Ud"    value={`${f2(preview.marginPerDelivered)} €`} />
+                <PreviewCell label="Tasa Entrega" value={`${f1(preview.deliveryRate)}%`} color={preview.deliveryRate >= 70 ? 'green' : 'red'} />
               </div>
             </div>
           )}
