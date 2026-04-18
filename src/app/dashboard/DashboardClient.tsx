@@ -503,7 +503,7 @@ export default function DashboardClient() {
                       <td><span className={`status-badge ${st.status}`}>{st.label}</span></td>
                       <td style={{ textAlign: 'right' }}>
                         {m.recordId && (
-                          <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleDelete(m.recordId)}><Trash2 size={16} /></button>
+                          <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleDelete(m.recordId!)}><Trash2 size={16} /></button>
                         )}
                       </td>
                     </tr>
