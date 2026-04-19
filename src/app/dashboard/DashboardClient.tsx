@@ -9,6 +9,10 @@ import {
   DailyRevenueChart,
   DailyProfitChart,
   CumulativeProfitChart,
+  AdsVsProfitChart,
+  CpaVsRoasChart,
+  DeliveredVsReturnsChart,
+  VariantDistributionPieChart
 } from '@/components/Charts'
 import AIAssistant from '@/components/AIAssistant'
 import BreakevenSimulator from '@/components/BreakevenSimulator'
@@ -274,6 +278,7 @@ export default function DashboardClient() {
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]) // Empty array means 'all'
   const [productDropdownOpen, setProductDropdownOpen] = useState(false)
+  const [datePreset, setDatePreset] = useState<string>('ytd')
   const [dateRange, setDateRange] = useState(() => {
     const end = new Date()
     const start = new Date(end.getFullYear(), 0, 1) // 1 de Enero del año actual
@@ -282,6 +287,36 @@ export default function DashboardClient() {
       end: end.toISOString().split('T')[0]
     }
   })
+
+  const handlePresetChange = (preset: string) => {
+    setDatePreset(preset)
+    const end = new Date()
+    const start = new Date()
+    
+    switch(preset) {
+      case 'hoy':
+        break;
+      case '7':
+        start.setDate(end.getDate() - 7)
+        break;
+      case '15':
+        start.setDate(end.getDate() - 15)
+        break;
+      case '30':
+        start.setMonth(end.getMonth() - 1)
+        break;
+      case 'ytd':
+        start.setMonth(0, 1) // Jan 1st
+        break;
+    }
+    
+    if (preset !== 'custom') {
+      setDateRange({
+        start: start.toISOString().split('T')[0],
+        end: end.toISOString().split('T')[0]
+      })
+    }
+  }
 
   const [records, setRecords] = useState<RawRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -401,11 +436,30 @@ export default function DashboardClient() {
 
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {/* RANGO FECHAS */}
-          <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '4px 6px', border: '1px solid rgba(0,0,0,0.08)' }}>
-            <Calendar size={14} style={{ color: 'var(--color-text-muted)', margin: '0 8px' }} />
-            <input type="date" className="filter-input-date" value={dateRange.start} onChange={e => setDateRange(d => ({ ...d, start: e.target.value }))} style={{ border: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--color-text-secondary)', padding: '4px 2px', outline: 'none' }} />
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', margin: '0 4px' }}>-</span>
-            <input type="date" className="filter-input-date" value={dateRange.end} onChange={e => setDateRange(d => ({ ...d, end: e.target.value }))} style={{ border: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--color-text-secondary)', padding: '4px 2px', outline: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '4px 6px', border: '1px solid rgba(0,0,0,0.08)' }}>
+              <Calendar size={14} style={{ color: 'var(--color-text-muted)', margin: '0 8px' }} />
+              <select 
+                value={datePreset}
+                onChange={e => handlePresetChange(e.target.value)}
+                style={{ border: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--color-text-secondary)', padding: '4px 2px', outline: 'none', cursor: 'pointer' }}
+              >
+                <option value="hoy">Hoy</option>
+                <option value="7">Últimos 7 días</option>
+                <option value="15">Últimos 15 días</option>
+                <option value="30">Último 1 mes</option>
+                <option value="ytd">Este año</option>
+                <option value="custom">Personalizado...</option>
+              </select>
+            </div>
+
+            {datePreset === 'custom' && (
+              <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '4px 6px', border: '1px solid rgba(0,0,0,0.08)' }}>
+                <input type="date" className="filter-input-date" value={dateRange.start} onChange={e => setDateRange(d => ({ ...d, start: e.target.value }))} style={{ border: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--color-text-secondary)', padding: '4px 2px', outline: 'none' }} />
+                <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', margin: '0 4px' }}>-</span>
+                <input type="date" className="filter-input-date" value={dateRange.end} onChange={e => setDateRange(d => ({ ...d, end: e.target.value }))} style={{ border: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--color-text-secondary)', padding: '4px 2px', outline: 'none' }} />
+              </div>
+            )}
           </div>
 
           {/* MULTISELECT PRODUCTOS */}
@@ -544,6 +598,23 @@ export default function DashboardClient() {
             <div className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header"><span className="chart-title">Beneficio Acumulado</span></div>
               <div className="chart-body" style={{ height: '280px' }}><CumulativeProfitChart metrics={metrics} /></div>
+            </div>
+            {/* Nuevas gráficas agregadas */}
+            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+              <div className="chart-header"><span className="chart-title">Ads vs Beneficio Neto</span></div>
+              <div className="chart-body" style={{ height: '280px' }}><AdsVsProfitChart metrics={metrics} /></div>
+            </div>
+            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+              <div className="chart-header"><span className="chart-title">Eficiencia: CPA vs ROAS</span></div>
+              <div className="chart-body" style={{ height: '280px' }}><CpaVsRoasChart metrics={metrics} /></div>
+            </div>
+            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+              <div className="chart-header"><span className="chart-title">Entregados vs Devueltos</span></div>
+              <div className="chart-body" style={{ height: '280px' }}><DeliveredVsReturnsChart metrics={metrics} /></div>
+            </div>
+            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+              <div className="chart-header"><span className="chart-title">Ventas por Variante</span></div>
+              <div className="chart-body" style={{ height: '280px' }}><VariantDistributionPieChart metrics={metrics} /></div>
             </div>
           </div>
 
