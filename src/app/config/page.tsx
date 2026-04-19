@@ -28,8 +28,6 @@ const EMPTY_FORM = {
   costReturn:   '',    // Coste Devolución (€)
   fixedCostDaily: '30', // Presupuesto Ads Diario (€)
 }
-type FormState = typeof EMPTY_FORM
-
 // ——————————————————————————————————————————————————————————————————————————————————————
 // Calculator logic
 // ——————————————————————————————————————————————————————————————————————————————————————
