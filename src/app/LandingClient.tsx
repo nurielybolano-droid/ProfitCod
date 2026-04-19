@@ -67,7 +67,7 @@ export default function LandingClient() {
         .nav-links { display: flex; gap: 2rem; list-style: none; }
         .nav-links a { color: var(--muted2); font-size: .9rem; font-weight: 400; transition: color .2s; }
         .nav-links a:hover { color: var(--text); }
-        .nav-right { display: flex; gap: .75rem; align-items: center; }
+        .nav-right { display: flex; gap: 1rem; align-items: center; }
 
         /* HERO */
         .hero-section {
@@ -194,8 +194,8 @@ export default function LandingClient() {
           <li><a href="#precios">Precios</a></li>
         </ul>
         <div className="nav-right">
-          <Link href="/login" className="btn-outline">Iniciar sesión</Link>
-          <Link href="/register" className="btn-primary">Prueba gratis</Link>
+          <Link href="/login" className="btn-pill-outline">Iniciar sesión</Link>
+          <Link href="/register" className="btn-pill-solid">Crear cuenta</Link>
         </div>
       </nav>
 

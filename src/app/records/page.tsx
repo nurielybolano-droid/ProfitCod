@@ -404,7 +404,7 @@ export default function RecordsPage() {
                         <td>{m.delivered}</td>
                         <td className="td-calc">{m.shipped - m.delivered - m.returns}</td>
                         <td className="td-calc td-money">{f2(m.revenue)} €</td>
-                        <td className="td-calc td-money">{f2(m.totalCogs)} €</td>
+                        <td className="td-calc td-money">{f2(m.totalCogs + (m.totalIva || 0))} €</td>
                         <td className="td-calc td-money">{f2(m.totalShippingCost)} €</td>
                         <td className="td-calc td-money">{f2(m.totalCodFee)} €</td>
                         <td>{m.returns}</td>
