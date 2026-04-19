@@ -278,7 +278,7 @@ export function VariantDistributionPieChart({ metrics }: { metrics: DailyMetrics
             <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value: number) => [`${value} uds`, 'Entregados']} />
+        <Tooltip formatter={(value: any) => [`${value} uds`, 'Entregados']} />
         <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px' }} />
       </PieChart>
     </ResponsiveContainer>
