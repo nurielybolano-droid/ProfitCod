@@ -11,7 +11,8 @@ import {
   CumulativeProfitChart,
 } from '@/components/Charts'
 import AIAssistant from '@/components/AIAssistant'
-import { Archive, Trash2 } from 'lucide-react'
+import BreakevenSimulator from '@/components/BreakevenSimulator'
+import { Archive, Trash2, Calendar, Filter, ChevronDown, Check } from 'lucide-react'
 
 interface Product {
   id: string
@@ -271,7 +272,17 @@ function KpiCard({
 // ============================
 export default function DashboardClient() {
   const [products, setProducts] = useState<Product[]>([])
-  const [selectedProductId, setSelectedProductId] = useState<string>('all')
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]) // Empty array means 'all'
+  const [productDropdownOpen, setProductDropdownOpen] = useState(false)
+  const [dateRange, setDateRange] = useState(() => {
+    const end = new Date()
+    const start = new Date(end.getFullYear(), 0, 1) // 1 de Enero del año actual
+    return {
+      start: start.toISOString().split('T')[0],
+      end: end.toISOString().split('T')[0]
+    }
+  })
+
   const [records, setRecords] = useState<RawRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -282,9 +293,16 @@ export default function DashboardClient() {
     setLoading(true)
     setServerError(null)
     try {
+      const params = new URLSearchParams()
+      if (selectedProductIds.length > 0) {
+        params.append('productIds', selectedProductIds.join(','))
+      }
+      if (dateRange.start) params.append('start', dateRange.start)
+      if (dateRange.end) params.append('end', dateRange.end)
+
       const [prodRes, recRes] = await Promise.all([
         fetch('/api/products'),
-        fetch(selectedProductId === 'all' ? '/api/records' : `/api/records?productId=${selectedProductId}`)
+        fetch(`/api/records?${params.toString()}`)
       ])
       
       let prodData = []
@@ -318,7 +336,7 @@ export default function DashboardClient() {
       console.error('Fetch error:', e)
     }
     setLoading(false)
-  }, [selectedProductId])
+  }, [selectedProductIds, dateRange])
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
@@ -334,19 +352,19 @@ export default function DashboardClient() {
   const metrics = useMemo(() => {
     if (!records.length) return []
     const allMetrics = calculateAllMetrics(records)
-    
-    // Filter by product if needed
-    const filtered = selectedProductId === 'all' 
-      ? allMetrics 
-      : allMetrics.filter(m => m.productId === selectedProductId)
       
-    // Recalculate cumulative profit for the filtered set (for accurate charts)
+    // Filter by selected products if any specific ones are selected
+    const filtered = selectedProductIds.length === 0
+      ? allMetrics
+      : allMetrics.filter(m => selectedProductIds.includes(m.productId || ''))
+      
+    // Recalculate cumulative profit
     let cumulative = 0
     return filtered.map(m => {
       cumulative += m.profit
       return { ...m, cumulativeProfit: cumulative }
     })
-  }, [records, selectedProductId])
+  }, [records, selectedProductIds])
 
   const alerts = useMemo(() => getSummaryAlerts(metrics), [metrics])
 
@@ -373,26 +391,74 @@ export default function DashboardClient() {
       )}
 
       {/* Header */}
-      <div className="page-header">
+      <div className="page-header" style={{ alignItems: 'flex-start' }}>
         <div>
           <h1 className="page-title">Panel de Control</h1>
           <p className="page-subtitle">
-            {selectedProductId === 'all' ? 'Vista general del negocio' : `Analizando nodo: ${products.find(p => p.id === selectedProductId)?.name}`}
+            {selectedProductIds.length === 0 ? 'Vista general (Todos los productos)' : `Analizando ${selectedProductIds.length} producto${selectedProductIds.length > 1 ? 's' : ''}`}
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <select 
-            className="form-input" 
-            style={{ width: '220px', fontSize: '0.9rem' }}
-            value={selectedProductId}
-            onChange={e => setSelectedProductId(e.target.value)}
-          >
-            <option value="all">Todos los productos</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {/* RANGO FECHAS */}
+          <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '4px 6px', border: '1px solid rgba(0,0,0,0.08)' }}>
+            <Calendar size={14} style={{ color: 'var(--color-text-muted)', margin: '0 8px' }} />
+            <input type="date" className="filter-input-date" value={dateRange.start} onChange={e => setDateRange(d => ({ ...d, start: e.target.value }))} style={{ border: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--color-text-secondary)', padding: '4px 2px', outline: 'none' }} />
+            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', margin: '0 4px' }}>-</span>
+            <input type="date" className="filter-input-date" value={dateRange.end} onChange={e => setDateRange(d => ({ ...d, end: e.target.value }))} style={{ border: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--color-text-secondary)', padding: '4px 2px', outline: 'none' }} />
+          </div>
+
+          {/* MULTISELECT PRODUCTOS */}
+          <div style={{ position: 'relative' }}>
+            <button 
+              type="button"
+              className="btn btn-secondary" 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', border: '1px solid rgba(0,0,0,0.1)' }}
+              onClick={() => setProductDropdownOpen(!productDropdownOpen)}
+            >
+              <Filter size={14} /> 
+              {selectedProductIds.length === 0 ? 'Todos los productos' : `${selectedProductIds.length} seleccionados`}
+              <ChevronDown size={14} style={{ opacity: 0.5 }} />
+            </button>
+
+            {productDropdownOpen && (
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setProductDropdownOpen(false)} />
+                <div className="glass-panel" style={{ position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', minWidth: '220px', zIndex: 100, padding: '0.5rem 0', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                  <div 
+                    className="dropdown-item" 
+                    onClick={() => setSelectedProductIds([])}
+                  >
+                    <div className="checkbox-box">{selectedProductIds.length === 0 && <Check size={12} />}</div>
+                    <span>Todos los productos</span>
+                  </div>
+                  <div style={{ height: '1px', background: 'rgba(0,0,0,0.05)', margin: '0.25rem 0' }} />
+                  {products.map(p => {
+                    const isSelected = selectedProductIds.includes(p.id)
+                    return (
+                      <div 
+                        key={p.id} 
+                        className="dropdown-item"
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedProductIds(prev => prev.filter(id => id !== p.id))
+                          } else {
+                            setSelectedProductIds(prev => [...prev, p.id])
+                          }
+                        }}
+                      >
+                        <div className={`checkbox-box ${isSelected ? 'active' : ''}`}>{isSelected && <Check size={12} color="white" />}</div>
+                        <span style={{ fontSize: '0.8rem' }}>{p.name}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+
           <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-            Nuevo Registro
+            + Nuevo Registro
           </button>
         </div>
       </div>
@@ -442,6 +508,12 @@ export default function DashboardClient() {
         </div>
       ) : (
         <>
+          {selectedProductIds.length === 1 && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <BreakevenSimulator product={products.find(p => p.id === selectedProductIds[0])} />
+            </div>
+          )}
+
           <div className="kpi-grid">
             <KpiCard label="Beneficio Acumulado" value={formatCurrency(totalProfit)}
               color="var(--color-primary)" trend={totalProfit >= 0 ? 'up' : 'down'} sub={`${metrics.length} días`} />
@@ -480,7 +552,7 @@ export default function DashboardClient() {
               <thead>
                 <tr>
                   <th>Fecha</th>
-                  {selectedProductId === 'all' && <th>Producto</th>}
+                  {selectedProductIds.length !== 1 && <th>Producto</th>}
                   <th>Recibidos</th>
                   <th>Entregados</th>
                   <th>Ingresos</th>
@@ -495,7 +567,7 @@ export default function DashboardClient() {
                   return (
                     <tr key={`${m.recordId}-${idx}`}>
                       <td style={{ fontWeight: 500 }}>{new Date(m.date).toLocaleDateString()}</td>
-                      {selectedProductId === 'all' && <td style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{m.productName}</td>}
+                      {selectedProductIds.length !== 1 && <td style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{m.productName}</td>}
                       <td>{m.orders}</td>
                       <td>{m.delivered}</td>
                       <td style={{ fontWeight: 600 }}>{formatCurrency(m.revenue)}</td>
@@ -520,6 +592,33 @@ export default function DashboardClient() {
 
       <style jsx>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          cursor: pointer;
+          transition: background 0.2s;
+          color: var(--color-text-secondary);
+        }
+        .dropdown-item:hover {
+          background: rgba(123,97,255,0.05);
+          color: var(--color-primary);
+        }
+        .checkbox-box {
+          width: 16px;
+          height: 16px;
+          border-radius: 4px;
+          border: 1px solid rgba(0,0,0,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .checkbox-box.active {
+          background: var(--color-primary);
+          border-color: var(--color-primary);
+        }
       `}</style>
     </>
   )

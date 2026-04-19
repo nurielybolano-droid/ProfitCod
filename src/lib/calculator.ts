@@ -110,7 +110,9 @@ export function calculateMetrics(
     const vShipped = Math.round(Number(record.ordersShipped || 0) * ratio)
     const vReturns = Math.round(Number(record.returns || 0) * ratio)
     const vAdsSpend = Number(record.adsSpend || 0) * ratio
-    const vFixedCosts = (Number(record.fixedCosts || 0) + (p.fixedCostDaily || 0)) * ratio
+    // NOTE: p.fixedCostDaily (Publi Diaria) is ONLY for the Breakeven Simulator in config,
+    // it does NOT affect daily records. The actual ad spend is in record.adsSpend.
+    const vFixedCosts = Number(record.fixedCosts || 0) * ratio
 
     const revenue = delivered * (p.pvp || 0)
     const totalIvaSale = delivered * (p.costProduct || 0) * (p.units || 1) * ((p.iva || 0) / 100)

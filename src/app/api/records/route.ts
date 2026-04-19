@@ -12,19 +12,37 @@ export const GET = auth(async (req) => {
   if (!req.auth?.user?.id) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const userId = req.auth.user.id
   const { searchParams } = new URL(req.url)
-  const productId = searchParams.get('productId')
+  const productIdsParam = searchParams.get('productIds')
+  const startParam = searchParams.get('start')
+  const endParam = searchParams.get('end')
+
+  const whereClause: any = { userId }
+
+  if (productIdsParam && productIdsParam !== 'all') {
+    const ids = productIdsParam.split(',').filter(Boolean)
+    if (ids.length > 0) {
+      whereClause.OR = [
+        { productId: { in: ids } },
+        { product2Id: { in: ids } }
+      ]
+    }
+  }
+
+  if (startParam || endParam) {
+    whereClause.date = {}
+    if (startParam) {
+      // Ensure we start at the beginning of the day in UTC
+      whereClause.date.gte = new Date(`${startParam}T00:00:00.000Z`)
+    }
+    if (endParam) {
+      // Ensure we end at the very end of the day in UTC
+      whereClause.date.lte = new Date(`${endParam}T23:59:59.999Z`)
+    }
+  }
 
   try {
     const records = await prisma.dailyRecord.findMany({
-      where: { 
-        userId, 
-        ...(productId ? { 
-          OR: [
-            { productId },
-            { product2Id: productId }
-          ]
-        } : {}) 
-      },
+      where: whereClause,
       include: {
         product:  { select: PRODUCT_SELECT },
         product2: { select: PRODUCT_SELECT },

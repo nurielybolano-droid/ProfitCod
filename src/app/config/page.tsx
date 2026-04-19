@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Product } from '@prisma/client'
 import { Package, Banknote, Scale, Truck, Activity, Target, BarChart3, Compass, Archive } from 'lucide-react'
+import { calcBreakevenMetrics, FormState, MetricBox, RefCalc } from '@/components/BreakevenSimulator'
 
 // ——————————————————————————————————————————————————————————————————————————————————————
 // Constants
@@ -36,45 +37,6 @@ type FormState = typeof EMPTY_FORM
 const n = (v: any) => parseFloat(v) || 0
 const fmt = (v: number) => v.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-function calcMetrics(f: FormState) {
-  const pvp          = n(f.pvp)
-  const costUnit     = n(f.costProduct)
-  const units        = Math.max(1, n(f.units))
-  const iva          = n(f.iva)
-  const cpa          = n(f.cpa)
-  const costEnvio    = n(f.costEnvio)
-  const feeCod       = n(f.feeCod)
-  const rateShip     = n(f.rateShipping) / 100
-  const rateDel      = n(f.rateDelivery) / 100
-  const costReturn   = n(f.costReturn)
-
-  /** PP = Coste Producto (sin IVA adicional automático) */
-  const pp       = costUnit * units
-  /** IVA (Calculado sobre el COSTE del producto en base al Excel contable) */
-  const ivaAmt   = pp * (iva / 100)
-  /** CPA Real = CPA nominal / (% envío * % entrega) */
-  const cpaReal  = (rateShip > 0 && rateDel > 0) ? cpa / (rateShip * rateDel) : 0
-  
-  /** GET = Gastos Envío Total = Envio + COD * % Envío + (1 - % Entrega) * Coste Devolución */
-  const getTotal = costEnvio + (feeCod * rateShip) + ((1 - rateDel) * costReturn)
-  
-  /** Profit por pedido entregado */
-  const profit   = pvp - ivaAmt - pp - cpaReal - getTotal
-  const margin   = pvp > 0 ? (profit / pvp) * 100 : 0
-  const roi      = pp > 0 ? (profit / pp) * 100 : 0
-  const fixedCostDaily = Math.max(0, n(f.fixedCostDaily))
-  
-  // -- Simulador Excel --
-  const simIngresos = pvp * rateShip * rateDel
-  const simCv = (pp * 1.21 + feeCod) * rateShip * rateDel + costEnvio * rateShip
-  const simNetProfit = simIngresos - simCv
-  const simNetMargin = pvp > 0 ? simNetProfit / pvp : 0
-  const simRoasBep = simNetMargin > 0 ? 1 / simNetMargin : 0
-  const simPm = simNetProfit > 0 ? fixedCostDaily / simNetProfit : 0
-
-  return { pp, ivaAmt, cpaReal, getTotal, profit, margin, roi, fixedCostDaily, simIngresos, simCv, simNetProfit, simNetMargin, simRoasBep, simPm }
-}
-
 // ——————————————————————————————————————————————————————————————————————————————————————
 // Component
 // ——————————————————————————————————————————————————————————————————————————————————————
@@ -87,7 +49,7 @@ export default function ConfigPage() {
   const [form,      setForm]      = useState<FormState>(EMPTY_FORM)
   const [error,     setError]     = useState('')
 
-  const metrics = useMemo(() => calcMetrics(form), [form])
+  const metrics = useMemo(() => calcBreakevenMetrics(form as FormState), [form])
 
   const set = (key: keyof FormState) =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -302,21 +264,21 @@ export default function ConfigPage() {
             <div className="cfg-ref-row">
               <RefCalc label="PVP" value={`${fmt(n(form.pvp))} €`} formula="Precio de venta" />
               <RefCalc label="PP" value={`${fmt(metrics.pp)} €`} formula={`${fmt(n(form.costProduct))} × ${units}`} accent />
-              <RefCalc label="GASTOS ENVIO" value={`${fmt(metrics.getTotal)} €`} formula="Envio+(COD*%E)+((1-%Ent)*Dev)" accent />
+              <RefCalc label="GASTOS ENVIO" value={`${fmt(metrics.getTotal)} €`} formula="Env/%Ent+COD+((1-%Ent)/%Ent)*Dev" accent />
               <RefCalc label="CPA Real" value={`${fmt(metrics.cpaReal)} €`} formula={`CPA / (%E × %Ent)`} accent />
             </div>
 
             <div className="cfg-metrics-grid">
-              <MetricBox label="Profit" value={`${fmt(metrics.profit)} €`} sub="Por pedido entregado" color={metrics.profit >= 0 ? 'success' : 'danger'} />
+              <MetricBox label="Profit" value={`${fmt(metrics.profit)} €`} sub="PVP−Coste−IVA−CPAReal−GastosEnvío" color={metrics.profit >= 0 ? 'success' : 'danger'} />
               <MetricBox label="Margen" value={`${fmt(metrics.margin)} %`} sub="Profit / PVP" color={metrics.margin >= 20 ? 'success' : metrics.margin >= 0 ? 'warning' : 'danger'} />
               <MetricBox label="ROI" value={`${fmt(metrics.roi)} %`} sub="Profit / Coste Producto" color={metrics.roi >= 50 ? 'success' : metrics.roi >= 0 ? 'warning' : 'danger'} />
               <MetricBox label="IVA" value={`${fmt(metrics.ivaAmt)} €`} sub="Sobre Coste Producto" color="primary" />
             </div>
           </div>
 
-          <div className="glass-panel cfg-metrics-card">
+          <div className="glass-panel cfg-metrics-card" style={{ marginTop: '1.5rem' }}>
             <div className="cfg-metrics-title">
-              <Compass size={16} style={{ color: 'var(--color-primary)' }} /> Simulador de Breakeven
+              <Compass size={16} style={{ color: 'var(--color-primary)' }} /> Simulador de Breakeven en Vivo
             </div>
             
             <div className="cfg-ref-row">
@@ -347,7 +309,7 @@ export default function ConfigPage() {
             <div className="cfg-product-list">
               {products.map(p => {
                 const pAny = p as any
-                const pm = calcMetrics({
+                const pm = calcBreakevenMetrics({
                   name: p.name, units: String(pAny.units ?? 1),
                   pvp: String(p.pvp), costProduct: String(p.costProduct),
                   iva: String(pAny.iva ?? 0), cpa: String(pAny.cpa ?? 0),
@@ -356,7 +318,7 @@ export default function ConfigPage() {
                   rateDelivery: String(pAny.rateDelivery ?? 100),
                   costReturn: String(pAny.costReturn ?? 0),
                   fixedCostDaily: String(pAny.fixedCostDaily ?? 30),
-                })
+                } as FormState)
                 return (
                   <div key={p.id} className="glass-panel cfg-product-card">
                     <div className="cfg-product-header">
@@ -421,27 +383,7 @@ export default function ConfigPage() {
   )
 }
 
-function MetricBox({ label, value, sub, color }: { label: string; value: string; sub: string; color: 'primary'|'success'|'warning'|'danger' }) {
-  const colors = { primary: '#7B61FF', success: '#27ae60', warning: '#b78b00', danger: '#c0392b' }
-  const bgs = { primary: 'rgba(123,97,255,0.1)', success: 'rgba(46,212,122,0.1)', warning: 'rgba(255,184,0,0.12)', danger: 'rgba(255,77,77,0.1)' }
-  return (
-    <div style={{ background: bgs[color], borderRadius: 12, padding: '0.85rem 1rem' }}>
-      <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '0.3rem' }}>{label}</div>
-      <div style={{ fontSize: '1.2rem', fontWeight: 700, color: colors[color] }}>{value}</div>
-      <div style={{ fontSize: '0.62rem', color: 'var(--color-text-muted)' }}>{sub}</div>
-    </div>
-  )
-}
 
-function RefCalc({ label, value, formula, accent }: { label: string; value: string; formula: string; accent?: boolean }) {
-  return (
-    <div style={{ background: accent ? 'rgba(123,97,255,0.07)' : 'rgba(0,0,0,0.03)', borderRadius: 10, padding: '0.6rem 0.75rem', border: `1px solid ${accent ? 'rgba(123,97,255,0.15)' : 'rgba(0,0,0,0.05)'}` }}>
-      <div style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>{label}</div>
-      <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>{value}</div>
-      <div style={{ fontSize: '0.55rem', color: 'var(--color-text-muted)' }}>{formula}</div>
-    </div>
-  )
-}
 
 function KpiPill({ label, value, ok }: { label: string; value: string; ok: boolean }) {
   return (
