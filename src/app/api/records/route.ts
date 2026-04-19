@@ -6,6 +6,7 @@ const PRODUCT_SELECT = {
   id: true, name: true, pvp: true, costProduct: true, units: true,
   costEnvio: true, feeCod: true, iva: true, cpa: true,
   rateShipping: true, rateDelivery: true, costReturn: true, fixedCostDaily: true,
+  packEnabled: true, packUnits: true, packPvp: true,
 } as const
 
 export const GET = auth(async (req) => {

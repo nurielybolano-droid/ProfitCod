@@ -36,7 +36,8 @@ export const POST = auth(async (req) => {
     name, pvp, costProduct, iva, cpa,
     costEnvio, feeCod,
     rateShipping, rateDelivery, costReturn,
-    units, fixedCostDaily
+    units, fixedCostDaily,
+    packEnabled, packUnits, packPvp
   } = body
 
   if (!name || pvp == null || costProduct == null || costEnvio == null || feeCod == null) {
@@ -59,6 +60,9 @@ export const POST = auth(async (req) => {
         costReturn:   Number(costReturn ?? 0),
         units:        Number(units ?? 1),
         fixedCostDaily: Number(fixedCostDaily ?? 0),
+        packEnabled:  Boolean(packEnabled ?? false),
+        packUnits:    Number(packUnits ?? 2),
+        packPvp:      packPvp != null ? Number(packPvp) : null,
       },
     })
 

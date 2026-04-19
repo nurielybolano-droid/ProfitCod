@@ -13,6 +13,9 @@ export interface ProductConfig {
   units: number
   fixedCostDaily: number
   marginTarget?: number | null
+  packEnabled?: boolean
+  packUnits?: number
+  packPvp?: number | null
 }
 
 export interface DailyRecord {
@@ -83,7 +86,16 @@ export function calculateMetrics(
   record: DailyRecord
 ): Omit<DailyMetrics, 'cumulativeProfit'>[] {
   const p1 = record.product
-  const p2 = record.product2
+  let p2 = record.product2
+
+  // Support for virtual pack variation
+  if (!p2 && p1.packEnabled && p1.packPvp != null) {
+    p2 = {
+      ...p1,
+      units: p1.packUnits || 2,
+      pvp: p1.packPvp
+    }
+  }
   
   const r1 = Number(record.ordersReceived1 || 0)
   const r2 = Number(record.ordersReceived2 || 0)
@@ -138,7 +150,7 @@ export function calculateMetrics(
       adsSpend: vAdsSpend,
       fixedCosts: vFixedCosts,
       notes: record.notes,
-      productName: p.name,
+      productName: isSecond ? `${p.name} (Pack ${p.units}ud)` : p.name,
       totalCogs,
       totalShippingCost: vEnvioCost,
       totalCodFee: vCodFee,
@@ -162,8 +174,8 @@ export function calculateMetrics(
     false
   ))
 
-  // Add P2 if it exists and has activity or exists as a different product
-  if (p2 && p2.id !== p1.id) {
+  // Add P2 if it exists (either a different product or a virtual pack variant)
+  if (p2 && (p2.id !== p1.id || (p1.packEnabled && p2 !== p1))) {
     results.push(calcVariant(
       p2, r2, 
       Number(record.ordersConfirmed2 || 0), 

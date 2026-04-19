@@ -13,6 +13,10 @@ export interface FormState {
   rateDelivery: string
   costReturn: string
   fixedCostDaily: string
+  // Variations
+  packEnabled?: boolean
+  packUnits?: string
+  packPvp?: string
 }
 
 const n = (v: any) => parseFloat(v) || 0

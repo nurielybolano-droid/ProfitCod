@@ -10,6 +10,7 @@ interface ProductInfo {
   id: string; name: string; pvp: number; costProduct: number; units: number
   costEnvio: number; feeCod: number; iva: number; cpa: number
   rateShipping: number; rateDelivery: number
+  packEnabled?: boolean; packUnits?: number; packPvp?: number | null
 }
 
 interface RawRecord {
@@ -207,7 +208,11 @@ export default function RecordsPage() {
                 <label className="form-label">Producto Principal (1 unidad)</label>
                 <select className="form-input" value={form.productId} onChange={set('productId')} required>
                   <option value="">— Selecciona producto —</option>
-                  {products.map(p => <option key={p.id} value={p.id}>{p.name} (×{p.units})</option>)}
+                  {products.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} (×{p.units}){p.packEnabled ? ` + Pack ${p.packUnits}ud` : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="form-group">
@@ -244,12 +249,16 @@ export default function RecordsPage() {
               <SL><Inbox size={14} style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '4px' }} /> Pedidos Recibidos</SL>
               <div className="form-grid-2">
                 <div className="form-group">
-                  <label className="form-label">Recibidos 1ud</label>
+                  <label className="form-label">
+                    Recibidos 1ud
+                  </label>
                   <input type="number" min="0" className="form-input" placeholder="0" value={form.ordersReceived1} onChange={set('ordersReceived1')} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Recibidos 2ud</label>
-                  <input type="number" min="0" className="form-input" placeholder="0" value={form.ordersReceived2} onChange={set('ordersReceived2')} />
+                  <label className="form-label" style={{ color: prod1?.packEnabled ? 'var(--color-success)' : 'inherit' }}>
+                    {prod1?.packEnabled ? `Recibidos Pack (${prod1.packUnits}ud)` : 'Recibidos 2ud'}
+                  </label>
+                  <input type="number" min="0" className="form-input" style={{ borderColor: prod1?.packEnabled ? 'rgba(46,212,122,0.3)' : 'inherit' }} placeholder="0" value={form.ordersReceived2} onChange={set('ordersReceived2')} />
                 </div>
               </div>
 
@@ -261,8 +270,10 @@ export default function RecordsPage() {
                   <input type="number" min="0" className="form-input" placeholder="0" value={form.ordersConfirmed1} onChange={set('ordersConfirmed1')} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Confirmados 2ud</label>
-                  <input type="number" min="0" className="form-input" placeholder="0" value={form.ordersConfirmed2} onChange={set('ordersConfirmed2')} />
+                  <label className="form-label" style={{ color: prod1?.packEnabled ? 'var(--color-success)' : 'inherit' }}>
+                    {prod1?.packEnabled ? `Confirmados Pack (${prod1.packUnits}ud)` : 'Confirmados 2ud'}
+                  </label>
+                  <input type="number" min="0" className="form-input" style={{ borderColor: prod1?.packEnabled ? 'rgba(46,212,122,0.3)' : 'inherit' }} placeholder="0" value={form.ordersConfirmed2} onChange={set('ordersConfirmed2')} />
                 </div>
               </div>
 
@@ -281,8 +292,10 @@ export default function RecordsPage() {
                   <input type="number" min="0" className="form-input" placeholder="0" value={form.ordersDelivered1} onChange={set('ordersDelivered1')} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Entregados 2ud</label>
-                  <input type="number" min="0" className="form-input" placeholder="0" value={form.ordersDelivered2} onChange={set('ordersDelivered2')} />
+                  <label className="form-label" style={{ color: prod1?.packEnabled ? 'var(--color-success)' : 'inherit' }}>
+                    {prod1?.packEnabled ? `Entregados Pack (${prod1.packUnits}ud)` : 'Entregados 2ud'}
+                  </label>
+                  <input type="number" min="0" className="form-input" style={{ borderColor: prod1?.packEnabled ? 'rgba(46,212,122,0.3)' : 'inherit' }} placeholder="0" value={form.ordersDelivered2} onChange={set('ordersDelivered2')} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Devoluciones</label>
@@ -348,16 +361,13 @@ export default function RecordsPage() {
                       <th className="th-sticky">Fecha</th>
                       <th className="th-sticky">Producto</th>
                       {/* Inputs */}
-                      <th className="th-input">Rec. 1ud</th>
-                      <th className="th-input">Rec. 2ud</th>
-                      <th className="th-input">Conf. 1ud</th>
-                      <th className="th-input">Conf. 2ud</th>
+                      <th className="th-input">Recibidos</th>
+                      <th className="th-input">Confirmados</th>
                       <th className="th-calc">% Conf</th>
                       <th className="th-input">Enviados</th>
                       <th className="th-calc">% Envío/Rec</th>
                       <th className="th-calc th-money">Fact. Est.</th>
-                      <th className="th-input">Entr. 1ud</th>
-                      <th className="th-input">Entr. 2ud</th>
+                      <th className="th-input">Entregados</th>
                       <th className="th-calc">Pend.</th>
                       <th className="th-calc th-money">Fact. Real</th>
                       <th className="th-calc th-money">Coste Prod.</th>
@@ -384,15 +394,12 @@ export default function RecordsPage() {
                           <div className="td-product-name">{m.productName}</div>
                         </td>
                         <td>{m.orders}</td>
-                        <td>{/* No longer showing 1ud/2ud separately in columns, each has its own row */} - </td>
                         <td>{m.confirmed}</td>
-                        <td> - </td>
                         <td className="td-calc">{f1(m.deliveryRate)}%</td>
                         <td>{m.shipped}</td>
                         <td className="td-calc">{f1((m.shipped / m.orders) * 100)}%</td>
                         <td className="td-calc td-money">{f2(m.revenue)} €</td>
                         <td>{m.delivered}</td>
-                        <td> - </td>
                         <td className="td-calc">{m.shipped - m.delivered - m.returns}</td>
                         <td className="td-calc td-money">{f2(m.revenue)} €</td>
                         <td className="td-calc td-money">{f2(m.totalCogs)} €</td>

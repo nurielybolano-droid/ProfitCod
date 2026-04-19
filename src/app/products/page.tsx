@@ -27,6 +27,9 @@ const EMPTY_FORM = {
   rateDelivery: '',
   costReturn:   '',    // Coste Devolución (€)
   fixedCostDaily: '30', // Presupuesto Ads Diario (€)
+  packEnabled:    false,
+  packUnits:      '2',
+  packPvp:        '',
 }
 // ——————————————————————————————————————————————————————————————————————————————————————
 // Calculator logic
@@ -89,6 +92,9 @@ export default function ProductsPage() {
           rateDelivery: n(form.rateDelivery),
           costReturn:   n(form.costReturn),
           fixedCostDaily: n(form.fixedCostDaily),
+          packEnabled:    form.packEnabled,
+          packUnits:      n(form.packUnits),
+          packPvp:        n(form.packPvp),
         }),
       })
       if (!res.ok) {
@@ -116,6 +122,9 @@ export default function ProductsPage() {
       rateDelivery: String(p.rateDelivery ?? 100),
       costReturn:   String(p.costReturn ?? 0),
       fixedCostDaily: String(p.fixedCostDaily ?? 30),
+      packEnabled:    p.packEnabled ?? false,
+      packUnits:      String(p.packUnits ?? 2),
+      packPvp:        String(p.packPvp ?? ''),
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -154,24 +163,6 @@ export default function ProductsPage() {
                 <input className="form-input" placeholder="Ej. Smartwatch Pro X" value={form.name} onChange={set('name')} required />
               </div>
 
-              <div className="cfg-section-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Package size={14} /> Variante por Unidades
-              </div>
-              <div className="form-group">
-                <label className="form-label">Unidades por pack</label>
-                <div className="cfg-units-row">
-                  {UNIT_OPTIONS.map(u => (
-                    <button
-                      key={u}
-                      type="button"
-                      className={`cfg-unit-btn ${form.units === String(u) ? 'active' : ''}`}
-                      onClick={() => setForm(f => ({ ...f, units: String(u) }))}
-                    >
-                      {u === 1 ? '1 und.' : `${u} unds.`}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               <div className="cfg-section-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Banknote size={14} /> Precios
@@ -239,6 +230,26 @@ export default function ProductsPage() {
               <div className="form-group" style={{maxWidth: '200px'}}>
                 <label className="form-label">Publi Diaria (Ads €)</label>
                 <input className="form-input" type="number" step="1" min="0" placeholder="30" value={form.fixedCostDaily} onChange={set('fixedCostDaily')} />
+              </div>
+              
+              <div className="cfg-pack-section">
+                <label className="cfg-toggle-row">
+                  <input type="checkbox" checked={form.packEnabled} onChange={e => setForm(f => ({ ...f, packEnabled: e.target.checked }))} />
+                  <span>Habilitar Pack (Variación 2)</span>
+                </label>
+                
+                {form.packEnabled && (
+                  <div className="form-grid-2" style={{ marginTop: '0.75rem', animation: 'fadeIn 0.3s' }}>
+                    <div className="form-group">
+                      <label className="form-label">Unidades Pack</label>
+                      <input className="form-input" type="number" value={form.packUnits} onChange={set('packUnits')} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">PVP Pack (€)</label>
+                      <input className="form-input" type="number" step="0.01" value={form.packPvp} onChange={set('packPvp')} placeholder="Ej. 49.99" />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {error && <p className="cfg-error">{error}</p>}
@@ -322,7 +333,10 @@ export default function ProductsPage() {
                     <div className="cfg-product-header">
                       <div className="cfg-product-name-row">
                         <h4 className="cfg-product-name">{p.name}</h4>
-                        {(pAny.units ?? 1) > 1 && <span className="cfg-units-badge">{pAny.units} unds.</span>}
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {(pAny.units ?? 1) > 1 && <span className="cfg-units-badge">{pAny.units} und.</span>}
+                          {pAny.packEnabled && <span className="cfg-units-badge" style={{ background: 'var(--color-success-gradient, #2ed47a)' }}>{pAny.packUnits} und. @ {pAny.packPvp}€</span>}
+                        </div>
                       </div>
                       <div className="cfg-product-btns">
                         <button className="cfg-btn-edit" onClick={() => handleEdit(p)}>Editar</button>
@@ -349,6 +363,10 @@ export default function ProductsPage() {
       <style jsx>{`
         .cfg-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2rem; align-items: start; }
         .cfg-left { display: flex; flex-direction: column; gap: 1.5rem; position: relative; }
+        .cfg-pack-section { margin-top: 1.25rem; padding: 1rem; border-radius: 12px; background: rgba(123,97,255,0.05); border: 1px dashed rgba(123,97,255,0.2); }
+        .cfg-toggle-row { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--color-text-secondary); }
+        .cfg-toggle-row input { width: 16px; height: 16px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         .cfg-right { display: flex; flex-direction: column; gap: 1rem; }
         .cfg-form-card { padding: 1.75rem; border-radius: 1.25rem; }
         .cfg-form-title { display: flex; align-items: center; gap: 0.6rem; font-size: 1rem; margin-bottom: 1.5rem; color: var(--color-text-primary); }
