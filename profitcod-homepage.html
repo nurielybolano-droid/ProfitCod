@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProfitCod — Conoce tu beneficio real en e-commerce</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --mint:#00C896;
+  --mint-dark:#009E78;
+  --night:#060D14;
+  --surface:#0B1622;
+  --surface2:#101F30;
+  --border:rgba(255,255,255,0.08);
+  --border-hover:rgba(0,200,150,0.3);
+  --text:#E6F0F8;
+  --muted:#5C7A94;
+  --muted2:#8BA8BF;
+  --accent:#FF5733;
+}
+html{scroll-behavior:smooth}
+body{background:var(--night);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;line-height:1.6}
+a{text-decoration:none;color:inherit}
+
+/* NAV */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 6vw;
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,13,20,0.9);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.35rem;letter-spacing:-0.02em}
+.logo span{color:var(--mint)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{color:var(--muted2);font-size:.9rem;font-weight:400;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-right{display:flex;gap:.75rem;align-items:center}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);padding:.5rem 1.1rem;border-radius:7px;font-size:.88rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-outline:hover{border-color:var(--muted2)}
+.btn-primary{background:var(--mint);color:#060D14;border:none;padding:.5rem 1.25rem;border-radius:7px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s}
+.btn-primary:hover{background:var(--mint-dark)}
+
+/* HERO */
+.hero{
+  max-width:1100px;margin:0 auto;
+  padding:5.5rem 6vw 4rem;
+  display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:center;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);
+  color:var(--mint);padding:.3rem .85rem;border-radius:100px;
+  font-size:.78rem;font-weight:500;margin-bottom:1.5rem;letter-spacing:.02em;
+}
+.badge-dot{width:6px;height:6px;background:var(--mint);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2rem,3.8vw,3.4rem);
+  font-weight:800;line-height:1.07;letter-spacing:-0.03em;
+  margin-bottom:1.2rem;
+}
+.hero h1 em{font-style:normal;color:var(--mint)}
+.hero > div > p{color:var(--muted2);font-size:1rem;line-height:1.7;margin-bottom:2rem;max-width:440px}
+.hero-btns{display:flex;gap:.85rem;flex-wrap:wrap}
+.hero-btn-main{
+  background:var(--mint);color:#060D14;border:none;
+  padding:.8rem 1.75rem;border-radius:8px;font-weight:700;font-size:1rem;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;
+}
+.hero-btn-main:hover{background:var(--mint-dark);transform:translateY(-1px)}
+.hero-btn-sec{
+  background:transparent;color:var(--text);
+  border:1px solid var(--border);
+  padding:.8rem 1.6rem;border-radius:8px;font-weight:400;font-size:1rem;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;
+}
+.hero-btn-sec:hover{border-color:var(--muted2)}
+.social-proof{display:flex;align-items:center;gap:.75rem;margin-top:1.75rem}
+.avatars{display:flex}
+.avatar{
+  width:30px;height:30px;border-radius:50%;
+  border:2px solid var(--night);
+  margin-left:-8px;font-size:.65rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.avatar:first-child{margin-left:0}
+.a1{background:#3B6D11;color:#C0DD97}
+.a2{background:#185FA5;color:#B5D4F4}
+.a3{background:#854F0B;color:#FAC775}
+.a4{background:#3C3489;color:#CECBF6}
+.proof-text{font-size:.8rem;color:var(--muted2)}
+.proof-text strong{color:var(--text);font-weight:500}
+
+/* DASHBOARD MOCKUP */
+.dash{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;padding:1.25rem;
+}
+.dash-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.dash-title{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;color:var(--muted2);letter-spacing:.05em;text-transform:uppercase}
+.dash-range{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:.22rem .6rem;font-size:.7rem;color:var(--muted2)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:.8rem}
+.kpi-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.7rem .8rem}
+.kpi-lbl{font-size:.65rem;color:var(--muted);margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.04em}
+.kpi-num{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700}
+.g{color:var(--mint)}.r{color:var(--accent)}.w{color:var(--text)}
+.kpi-sub{font-size:.62rem;color:var(--mint);margin-top:.1rem}
+.kpi-sub.neg{color:var(--accent)}
+.chart-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem;margin-bottom:.7rem}
+.chart-lbl{font-size:.65rem;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em}
+.bars-wrap{display:flex;align-items:flex-end;gap:5px;height:56px}
+.bar{flex:1;border-radius:3px 3px 0 0}
+.brow{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.mini{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem}
+.mini-lbl{font-size:.65rem;color:var(--muted);margin-bottom:.45rem;text-transform:uppercase;letter-spacing:.04em}
+.track{height:5px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;margin-bottom:.3rem}
+.fill{height:100%;border-radius:100px}
+.fill-g{background:var(--mint)}
+.fill-a{background:#EF9F27}
+.row-pct{display:flex;justify-content:space-between;font-size:.68rem}
+
+/* LOGOS */
+.logos-wrap{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:1.1rem 6vw;overflow:hidden}
+.logos-scroll{display:flex;gap:3rem;align-items:center;animation:scroll 22s linear infinite;white-space:nowrap}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.plat{display:flex;align-items:center;gap:.5rem;color:var(--muted);font-size:.82rem;font-weight:500}
+.plat-ic{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700}
+
+/* FEATURES */
+.section{max-width:1100px;margin:0 auto;padding:5rem 6vw}
+.section-tag{font-size:.75rem;font-weight:600;color:var(--mint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.7rem}
+.section-h{font-family:'Syne',sans-serif;font-size:clamp(1.7rem,3vw,2.6rem);font-weight:800;letter-spacing:-0.025em;line-height:1.1;margin-bottom:.9rem}
+.section-sub{color:var(--muted2);max-width:500px;line-height:1.65;margin-bottom:3rem;font-size:.97rem}
+.feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+.feat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:1.6rem;position:relative;overflow:hidden;transition:border-color .25s,transform .25s;cursor:default;
+}
+.feat-card:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+.feat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--mint);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.feat-card:hover::after{transform:scaleX(1)}
+.feat-ic{
+  width:38px;height:38px;border-radius:8px;
+  background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.18);
+  display:flex;align-items:center;justify-content:center;margin-bottom:.95rem;
+}
+.feat-ic svg{width:18px;height:18px;stroke:var(--mint);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.feat-card h3{font-family:'Syne',sans-serif;font-size:.98rem;font-weight:700;margin-bottom:.5rem}
+.feat-card p{color:var(--muted2);font-size:.875rem;line-height:1.6}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.9rem}
+.tag{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted2);font-size:.7rem;padding:.18rem .55rem;border-radius:100px}
+
+/* HOW IT WORKS */
+.how{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.how-inner{max-width:1100px;margin:0 auto;padding:5rem 6vw}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:3rem;position:relative}
+.steps::before{
+  content:'';position:absolute;top:27px;
+  left:calc(16.66% + 27px);right:calc(16.66% + 27px);
+  height:1px;background:var(--border);
+}
+.step{text-align:center}
+.step-n{
+  width:54px;height:54px;border-radius:50%;
+  background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.25);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.1rem;
+  font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;color:var(--mint);
+  position:relative;z-index:1;
+}
+.step h4{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:.45rem;font-size:.95rem}
+.step p{color:var(--muted2);font-size:.85rem;line-height:1.6;max-width:220px;margin:0 auto}
+
+/* SIMULATOR */
+.sim-section{max-width:1100px;margin:0 auto;padding:5rem 6vw}
+.sim-wrap{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:3rem;align-items:start}
+.sim-form{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.75rem}
+.sim-form h4{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1.25rem;color:var(--muted2);font-size:.88rem;text-transform:uppercase;letter-spacing:.06em}
+.input-g{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.85rem}
+.input-g label{font-size:.78rem;color:var(--muted2)}
+.sim-inp{
+  background:var(--surface2);border:1px solid var(--border);border-radius:7px;
+  padding:.55rem .8rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;
+  width:100%;outline:none;transition:border-color .2s;
+}
+.sim-inp:focus{border-color:rgba(0,200,150,0.4)}
+.calc-btn{
+  width:100%;background:var(--mint);color:#060D14;border:none;
+  padding:.75rem;border-radius:8px;font-weight:700;font-size:.95rem;
+  cursor:pointer;font-family:'Syne',sans-serif;margin-top:.5rem;transition:background .2s;
+}
+.calc-btn:hover{background:var(--mint-dark)}
+.sim-result{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.75rem}
+.res-h{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1.5rem;color:var(--muted2);font-size:.88rem;text-transform:uppercase;letter-spacing:.06em}
+.res-row{display:flex;justify-content:space-between;align-items:center;padding:.55rem 0;border-bottom:1px solid var(--border)}
+.res-row:last-child{border-bottom:none}
+.res-lbl{font-size:.88rem;color:var(--muted2)}
+.res-val{font-family:'Syne',sans-serif;font-size:.92rem;font-weight:700;color:var(--text)}
+.res-val.profit{color:var(--mint);font-size:1.5rem}
+.res-val.loss{color:var(--accent);font-size:1.5rem}
+.roi-badge{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.45rem 1.1rem;border-radius:100px;
+  font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;
+  margin-top:1.25rem;width:100%;justify-content:center;
+}
+.roi-g{background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:var(--mint)}
+.roi-r{background:rgba(255,87,51,0.1);border:1px solid rgba(255,87,51,0.25);color:var(--accent)}
+.roi-n{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted2)}
+
+/* PRICING */
+.pricing{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.pricing-inner{max-width:1100px;margin:0 auto;padding:5rem 6vw;text-align:center}
+.pricing-inner .section-sub{margin-left:auto;margin-right:auto}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:3rem;text-align:left}
+.plan{background:var(--night);border:1px solid var(--border);border-radius:14px;padding:1.75rem;position:relative;transition:transform .25s}
+.plan:hover{transform:translateY(-3px)}
+.plan.star{border-color:rgba(0,200,150,0.4);background:rgba(0,200,150,0.03)}
+.plan-badge{
+  position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+  background:var(--mint);color:#060D14;
+  font-size:.7rem;font-weight:700;padding:.28rem .85rem;border-radius:100px;
+  white-space:nowrap;font-family:'Syne',sans-serif;
+}
+.plan-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem}
+.plan-desc{color:var(--muted2);font-size:.82rem;margin:.35rem 0 .8rem;line-height:1.5}
+.plan-price{font-family:'Syne',sans-serif;font-size:2.1rem;font-weight:800;letter-spacing:-0.02em}
+.plan-price span{font-size:.9rem;font-weight:400;color:var(--muted2)}
+.plan-sep{height:1px;background:var(--border);margin:1.2rem 0}
+.plan-list{list-style:none;display:flex;flex-direction:column;gap:.6rem}
+.plan-list li{font-size:.85rem;color:var(--muted2);display:flex;align-items:flex-start;gap:.5rem}
+.plan-list li::before{content:'✓';color:var(--mint);font-weight:700;font-size:.8rem;flex-shrink:0;margin-top:.05rem}
+.plan-btn{
+  display:block;width:100%;text-align:center;
+  margin-top:1.5rem;padding:.68rem;border-radius:7px;
+  font-weight:500;font-size:.88rem;cursor:pointer;
+  border:1px solid var(--border);background:transparent;color:var(--text);
+  font-family:'DM Sans',sans-serif;transition:all .2s;
+}
+.plan-btn:hover{background:rgba(255,255,255,0.05)}
+.plan.star .plan-btn{background:var(--mint);color:#060D14;border-color:var(--mint);font-weight:700}
+.plan.star .plan-btn:hover{background:var(--mint-dark)}
+
+/* TESTIMONIALS */
+.testi{max-width:1100px;margin:0 auto;padding:5rem 6vw}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:3rem}
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;transition:border-color .25s}
+.tc:hover{border-color:rgba(0,200,150,0.25)}
+.stars{color:var(--mint);font-size:.82rem;letter-spacing:2px;margin-bottom:.85rem}
+.tc p{color:var(--text);font-size:.9rem;line-height:1.65;margin-bottom:1.2rem;font-style:italic}
+.author{display:flex;align-items:center;gap:.7rem}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem}
+.an{font-weight:500;font-size:.85rem}
+.ar{font-size:.75rem;color:var(--muted2)}
+
+/* CTA */
+.cta{padding:6rem 6vw;text-align:center}
+.cta h2{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:800;letter-spacing:-0.025em;margin-bottom:1rem}
+.cta p{color:var(--muted2);font-size:1rem;margin-bottom:2.25rem;max-width:420px;margin-left:auto;margin-right:auto;line-height:1.65}
+.cta-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.cta-main{background:var(--mint);color:#060D14;border:none;padding:.85rem 2rem;border-radius:8px;font-weight:700;font-size:1rem;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s}
+.cta-main:hover{background:var(--mint-dark);transform:translateY(-1px)}
+.cta-sec{background:transparent;color:var(--text);border:1px solid var(--border);padding:.85rem 1.75rem;border-radius:8px;font-weight:400;font-size:1rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color .2s}
+.cta-sec:hover{border-color:var(--muted2)}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:2.25rem 6vw}
+.foot-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.foot-links{display:flex;gap:1.5rem}
+.foot-links a{color:var(--muted);font-size:.82rem;transition:color .2s}
+.foot-links a:hover{color:var(--text)}
+.foot-copy{color:var(--muted);font-size:.8rem}
+
+/* RESPONSIVE */
+@media(max-width:800px){
+  .hero,.sim-wrap{grid-template-columns:1fr;gap:2rem}
+  .feat-grid,.plans,.testi-grid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr;gap:1.5rem}
+  .steps::before{display:none}
+  .nav-links{display:none}
+  .dash{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Profit<span>Cod</span></div>
+  <ul class="nav-links">
+    <li><a href="#funciones">Funciones</a></li>
+    <li><a href="#como-funciona">Cómo funciona</a></li>
+    <li><a href="#simulador">Simulador</a></li>
+    <li><a href="#precios">Precios</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="btn-outline">Iniciar sesión</button>
+    <button class="btn-primary">Prueba gratis</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div style="max-width:1100px;margin:0 auto">
+  <div class="hero">
+    <div>
+      <div class="hero-badge"><span class="badge-dot"></span> Nuevo: Dashboard con comparativa por fechas</div>
+      <h1>Sabe exactamente cuánto ganas de <em>verdad</em> con tus ventas</h1>
+      <p>ProfitCod calcula tu beneficio real restando todos los costes ocultos: producto, envíos, devoluciones, COD, IVA y publicidad. Sin hojas de Excel complicadas.</p>
+      <div class="hero-btns">
+        <button class="hero-btn-main">Empieza gratis — 14 días</button>
+        <button class="hero-btn-sec">Ver demo en vivo</button>
+      </div>
+      <div class="social-proof">
+        <div class="avatars">
+          <div class="avatar a1">CR</div>
+          <div class="avatar a2">ML</div>
+          <div class="avatar a3">SA</div>
+          <div class="avatar a4">PG</div>
+        </div>
+        <p class="proof-text"><strong>+2.400 vendedores</strong> ya conocen su profit real</p>
+      </div>
+    </div>
+    <!-- DASHBOARD MOCKUP -->
+    <div class="dash">
+      <div class="dash-top">
+        <span class="dash-title">Panel de control</span>
+        <span class="dash-range">Últimos 30 días</span>
+      </div>
+      <div class="kpis">
+        <div class="kpi-box">
+          <div class="kpi-lbl">Beneficio neto</div>
+          <div class="kpi-num g">€4.280</div>
+          <div class="kpi-sub">+18% vs anterior</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-lbl">ROI publicidad</div>
+          <div class="kpi-num w">3.2x</div>
+          <div class="kpi-sub">ROAS real</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-lbl">Devoluciones</div>
+          <div class="kpi-num r">12%</div>
+          <div class="kpi-sub neg">−3% objetivo</div>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-lbl">Beneficio vs inversión publicitaria</div>
+        <div class="bars-wrap">
+          <div class="bar" style="height:35%;background:#0F6E56"></div>
+          <div class="bar" style="height:48%;background:#0F6E56"></div>
+          <div class="bar" style="height:42%;background:#0F6E56"></div>
+          <div class="bar" style="height:62%;background:var(--mint)"></div>
+          <div class="bar" style="height:55%;background:#0F6E56"></div>
+          <div class="bar" style="height:70%;background:var(--mint)"></div>
+          <div class="bar" style="height:78%;background:var(--mint)"></div>
+          <div class="bar" style="height:32%;background:#993C1D"></div>
+          <div class="bar" style="height:68%;background:var(--mint)"></div>
+          <div class="bar" style="height:75%;background:var(--mint)"></div>
+          <div class="bar" style="height:85%;background:var(--mint)"></div>
+          <div class="bar" style="height:90%;background:var(--mint)"></div>
+        </div>
+      </div>
+      <div class="brow">
+        <div class="mini">
+          <div class="mini-lbl">Margen bruto</div>
+          <div class="track"><div class="fill fill-g" style="width:64%"></div></div>
+          <div class="row-pct">
+            <span style="font-size:.68rem;color:var(--muted2)">Objetivo 60%</span>
+            <span style="font-size:.7rem;font-weight:700;color:var(--mint)">64%</span>
+          </div>
+        </div>
+        <div class="mini">
+          <div class="mini-lbl">Tasa entrega</div>
+          <div class="track"><div class="fill fill-a" style="width:88%"></div></div>
+          <div class="row-pct">
+            <span style="font-size:.68rem;color:var(--muted2)">Meta 90%</span>
+            <span style="font-size:.7rem;font-weight:700;color:#EF9F27">88%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLATAFORMAS -->
+<div class="logos-wrap">
+  <div class="logos-scroll">
+    <!-- Set 1 -->
+    <div class="plat"><div class="plat-ic" style="background:#FF9900;color:#fff">A</div> Amazon</div>
+    <div class="plat"><div class="plat-ic" style="background:#96BF48;color:#fff">S</div> Shopify</div>
+    <div class="plat"><div class="plat-ic" style="background:#E53238;color:#fff">e</div> eBay</div>
+    <div class="plat"><div class="plat-ic" style="background:#3483FA;color:#fff">M</div> MercadoLibre</div>
+    <div class="plat"><div class="plat-ic" style="background:#2D3277;color:#fff">W</div> WooCommerce</div>
+    <div class="plat"><div class="plat-ic" style="background:#D00B35;color:#fff">Z</div> Zalando</div>
+    <div class="plat"><div class="plat-ic" style="background:#E77600;color:#fff">Fb</div> Facebook Ads</div>
+    <div class="plat"><div class="plat-ic" style="background:#4285F4;color:#fff">G</div> Google Ads</div>
+    <!-- Set 2 (mirror for infinite scroll) -->
+    <div class="plat"><div class="plat-ic" style="background:#FF9900;color:#fff">A</div> Amazon</div>
+    <div class="plat"><div class="plat-ic" style="background:#96BF48;color:#fff">S</div> Shopify</div>
+    <div class="plat"><div class="plat-ic" style="background:#E53238;color:#fff">e</div> eBay</div>
+    <div class="plat"><div class="plat-ic" style="background:#3483FA;color:#fff">M</div> MercadoLibre</div>
+    <div class="plat"><div class="plat-ic" style="background:#2D3277;color:#fff">W</div> WooCommerce</div>
+    <div class="plat"><div class="plat-ic" style="background:#D00B35;color:#fff">Z</div> Zalando</div>
+    <div class="plat"><div class="plat-ic" style="background:#E77600;color:#fff">Fb</div> Facebook Ads</div>
+    <div class="plat"><div class="plat-ic" style="background:#4285F4;color:#fff">G</div> Google Ads</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="funciones">
+  <div class="section-tag">Funciones principales</div>
+  <h2 class="section-h">Todo lo que necesitas para<br>conocer tu negocio real</h2>
+  <p class="section-sub">Olvídate de fórmulas manuales y datos dispersos. ProfitCod centraliza y automatiza todos los cálculos financieros de tu tienda online.</p>
+
+  <div class="feat-grid">
+
+    <div class="feat-card">
+      <div class="feat-ic">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      </div>
+      <h3>Rentabilidad real por producto</h3>
+      <p>Calcula tu margen de beneficio neto restando automáticamente todos los costes: precio de compra, envío, comisión de plataforma, recargo COD, devoluciones esperadas e impuestos.</p>
+      <div class="tags">
+        <span class="tag">Profit neto</span>
+        <span class="tag">ROI automático</span>
+        <span class="tag">Margen %</span>
+        <span class="tag">Por producto</span>
+      </div>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-ic">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg>
+      </div>
+      <h3>Registro de operaciones diarias</h3>
+      <p>Anota cada día tus campañas: pedidos recibidos, unidades entregadas, devoluciones e inversión publicitaria. Visualiza al instante si estás en verde o en rojo.</p>
+      <div class="tags">
+        <span class="tag">Control diario</span>
+        <span class="tag">Campañas</span>
+        <span class="tag">Devoluciones</span>
+        <span class="tag">CPA real</span>
+      </div>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-ic">
+        <svg viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-6"/></svg>
+      </div>
+      <h3>Simulador e historial por variantes</h3>
+      <p>Configura diferentes packs de tu producto — "1 unidad", "Pack x2", "Pack x3" — y simula la rentabilidad de cada opción antes de lanzar tu campaña.</p>
+      <div class="tags">
+        <span class="tag">Packs y variantes</span>
+        <span class="tag">Simulador</span>
+        <span class="tag">Historial</span>
+        <span class="tag">Comparativa</span>
+      </div>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-ic">
+        <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 9h18M9 3v18"/></svg>
+      </div>
+      <h3>Dashboard visual con gráficos</h3>
+      <p>Panel de control con gráficas claras: beneficio vs inversión publicitaria, distribución de ventas y devoluciones, y filtros por rango de fechas personalizado.</p>
+      <div class="tags">
+        <span class="tag">Dashboard</span>
+        <span class="tag">Gráficas</span>
+        <span class="tag">Filtros por fecha</span>
+        <span class="tag">Exportar</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="como-funciona">
+  <div class="how-inner">
+    <div class="section-tag">Cómo funciona</div>
+    <h2 class="section-h">En marcha en menos de 5 minutos</h2>
+    <p class="section-sub">Sin integraciones complejas. Sin datos técnicos. Solo introduce tus números y ProfitCod hace el resto.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">01</div>
+        <h4>Configura tu producto</h4>
+        <p>Introduce el coste, precio de venta, gastos de envío y porcentaje de devoluciones habitual.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <h4>Registra tus campañas</h4>
+        <p>Cada día anota los pedidos, entregas y lo que invertiste en publicidad. En menos de 2 minutos.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <h4>Conoce tu beneficio real</h4>
+        <p>ProfitCod calcula al instante tu profit neto, ROI y margen. Sin fórmulas, sin errores.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SIMULADOR -->
+<section class="sim-section" id="simulador">
+  <div class="section-tag">Simulador de rentabilidad</div>
+  <h2 class="section-h">Calcula tu beneficio antes<br>de invertir un euro</h2>
+  <p class="section-sub">Introduce los datos de tu producto y descubre al instante si tu campaña es rentable.</p>
+  <div class="sim-wrap">
+    <div class="sim-form">
+      <h4>Datos del producto</h4>
+      <div class="input-g">
+        <label>Precio de venta (€)</label>
+        <input class="sim-inp" type="number" id="precio" value="29.99" step="0.01">
+      </div>
+      <div class="input-g">
+        <label>Coste del producto (€)</label>
+        <input class="sim-inp" type="number" id="coste" value="8.50" step="0.01">
+      </div>
+      <div class="input-g">
+        <label>Coste de envío (€)</label>
+        <input class="sim-inp" type="number" id="envio" value="3.20" step="0.01">
+      </div>
+      <div class="input-g">
+        <label>Inversión publicitaria / CPA (€)</label>
+        <input class="sim-inp" type="number" id="cpa" value="5.00" step="0.01">
+      </div>
+      <div class="input-g">
+        <label>Tasa de devolución (%)</label>
+        <input class="sim-inp" type="number" id="devolucion" value="12" step="1" min="0" max="100">
+      </div>
+      <div class="input-g">
+        <label>IVA / impuestos (%)</label>
+        <input class="sim-inp" type="number" id="iva" value="21" step="1" min="0" max="100">
+      </div>
+      <button class="calc-btn" onclick="calcular()">Calcular rentabilidad</button>
+    </div>
+
+    <div class="sim-result">
+      <div class="res-h">Resultado del análisis</div>
+      <div class="res-row">
+        <span class="res-lbl">Precio de venta</span>
+        <span class="res-val" id="r-precio">€29.99</span>
+      </div>
+      <div class="res-row">
+        <span class="res-lbl">Coste del producto</span>
+        <span class="res-val" id="r-coste">−€8.50</span>
+      </div>
+      <div class="res-row">
+        <span class="res-lbl">Coste de envío</span>
+        <span class="res-val" id="r-envio">−€3.20</span>
+      </div>
+      <div class="res-row">
+        <span class="res-lbl">Inversión publicitaria</span>
+        <span class="res-val" id="r-cpa">−€5.00</span>
+      </div>
+      <div class="res-row">
+        <span class="res-lbl">Impacto devoluciones</span>
+        <span class="res-val" id="r-dev">−€3.60</span>
+      </div>
+      <div class="res-row">
+        <span class="res-lbl">IVA / impuestos</span>
+        <span class="res-val" id="r-iva">−€5.19</span>
+      </div>
+      <div class="res-row" style="border-bottom:none;padding-top:.9rem">
+        <span class="res-lbl" style="font-weight:500;color:var(--text)">Beneficio neto real</span>
+        <span class="res-val profit" id="r-profit">€4.50</span>
+      </div>
+      <div class="roi-badge roi-g" id="roi-badge">ROI: 20.5% — Campaña rentable</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="precios">
+  <div class="pricing-inner">
+    <div class="section-tag">Planes y precios</div>
+    <h2 class="section-h">Empieza gratis. Escala cuando crezcas.</h2>
+    <p class="section-sub">Sin contratos anuales. Sin sorpresas. Cancela cuando quieras.</p>
+
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-name">Starter</div>
+        <div class="plan-desc">Para empezar a vender con cabeza</div>
+        <div class="plan-price">€0 <span>/ mes</span></div>
+        <div class="plan-sep"></div>
+        <ul class="plan-list">
+          <li>Hasta 3 productos</li>
+          <li>Simulador de rentabilidad</li>
+          <li>Registro diario (30 días)</li>
+          <li>Dashboard básico</li>
+        </ul>
+        <button class="plan-btn">Empezar gratis</button>
+      </div>
+
+      <div class="plan star">
+        <div class="plan-badge">Más popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-desc">Para vendedores activos que necesitan control total</div>
+        <div class="plan-price">€29 <span>/ mes</span></div>
+        <div class="plan-sep"></div>
+        <ul class="plan-list">
+          <li>Productos ilimitados</li>
+          <li>Variantes y packs ilimitados</li>
+          <li>Historial completo</li>
+          <li>Dashboard avanzado con gráficas</li>
+          <li>Exportación a Excel/CSV</li>
+          <li>Soporte prioritario</li>
+        </ul>
+        <button class="plan-btn">Prueba 14 días gratis</button>
+      </div>
+
+      <div class="plan">
+        <div class="plan-name">Business</div>
+        <div class="plan-desc">Para equipos y marcas con múltiples tiendas</div>
+        <div class="plan-price">€79 <span>/ mes</span></div>
+        <div class="plan-sep"></div>
+        <ul class="plan-list">
+          <li>Todo lo del plan Pro</li>
+          <li>Hasta 5 usuarios</li>
+          <li>Múltiples tiendas</li>
+          <li>Informes automatizados</li>
+          <li>API de acceso</li>
+          <li>Onboarding personalizado</li>
+        </ul>
+        <button class="plan-btn">Hablar con ventas</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testi">
+  <div class="section-tag">Testimonios</div>
+  <h2 class="section-h">Vendedores que ya conocen<br>su profit real</h2>
+  <div class="testi-grid">
+    <div class="tc">
+      <div class="stars">★★★★★</div>
+      <p>"Llevaba meses pensando que ganaba dinero. Con ProfitCod descubrí que mis devoluciones y el COD me estaban comiendo el margen. En dos semanas ajusté mi precio y ahora sí soy rentable."</p>
+      <div class="author">
+        <div class="av" style="background:#0B1622;color:var(--mint);border:1px solid rgba(0,200,150,0.3)">CR</div>
+        <div>
+          <div class="an">Carlos R.</div>
+          <div class="ar">Vendedor en Shopify — Moda</div>
+        </div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="stars">★★★★★</div>
+      <p>"El simulador de variantes es increíble. Ahora antes de lanzar cualquier campaña pruebo qué pack me da más margen. Ha cambiado completamente cómo tomo decisiones."</p>
+      <div class="author">
+        <div class="av" style="background:#0B1622;color:#EF9F27;border:1px solid rgba(239,159,39,0.3)">ML</div>
+        <div>
+          <div class="an">María L.</div>
+          <div class="ar">Dropshipper — Electrónica</div>
+        </div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="stars">★★★★★</div>
+      <p>"Antes usaba Excel y siempre me olvidaba algún gasto. ProfitCod lo centraliza todo y el dashboard me da en un vistazo si el día fue bueno o malo. Imprescindible."</p>
+      <div class="author">
+        <div class="av" style="background:#0B1622;color:#AFA9EC;border:1px solid rgba(175,169,236,0.3)">SA</div>
+        <div>
+          <div class="an">Sergio A.</div>
+          <div class="ar">Tienda propia — Suplementos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta">
+  <h2>¿Listo para conocer tu<br>beneficio real?</h2>
+  <p>Empieza gratis hoy. Sin tarjeta de crédito. Sin compromisos. Solo números reales.</p>
+  <div class="cta-btns">
+    <button class="cta-main">Crear cuenta gratis</button>
+    <button class="cta-sec">Ver una demo</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-inner">
+    <div class="logo">Profit<span>Cod</span></div>
+    <div class="foot-links">
+      <a href="#">Privacidad</a>
+      <a href="#">Términos</a>
+      <a href="#">Contacto</a>
+      <a href="#">Blog</a>
+    </div>
+    <div class="foot-copy">© 2025 ProfitCod. Todos los derechos reservados.</div>
+  </div>
+</footer>
+
+<script>
+function fmt(n){return n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+function calcular(){
+  const precio = parseFloat(document.getElementById('precio').value)||0;
+  const coste = parseFloat(document.getElementById('coste').value)||0;
+  const envio = parseFloat(document.getElementById('envio').value)||0;
+  const cpa = parseFloat(document.getElementById('cpa').value)||0;
+  const devPct = parseFloat(document.getElementById('devolucion').value)||0;
+  const ivaPct = parseFloat(document.getElementById('iva').value)||0;
+
+  const impDev = precio*(devPct/100);
+  const impIva = precio*(ivaPct/100);
+  const profit = precio - coste - envio - cpa - impDev - impIva;
+  const roi = coste > 0 ? (profit/coste)*100 : 0;
+
+  document.getElementById('r-precio').textContent = '€'+fmt(precio);
+  document.getElementById('r-coste').textContent = '−€'+fmt(coste);
+  document.getElementById('r-envio').textContent = '−€'+fmt(envio);
+  document.getElementById('r-cpa').textContent = '−€'+fmt(cpa);
+  document.getElementById('r-dev').textContent = '−€'+fmt(impDev);
+  document.getElementById('r-iva').textContent = '−€'+fmt(impIva);
+
+  const profitEl = document.getElementById('r-profit');
+  profitEl.textContent = (profit<0?'−':'')+'€'+fmt(Math.abs(profit));
+  profitEl.className = 'res-val '+(profit>=0?'profit':'loss');
+
+  const badge = document.getElementById('roi-badge');
+  if(profit>0){
+    badge.className='roi-badge roi-g';
+    badge.textContent='ROI: '+roi.toFixed(1)+'% — Campaña rentable';
+  } else if(profit===0){
+    badge.className='roi-badge roi-n';
+    badge.textContent='ROI: 0% — Punto de equilibrio';
+  } else {
+    badge.className='roi-badge roi-r';
+    badge.textContent='ROI: '+roi.toFixed(1)+'% — No es rentable';
+  }
+}
+calcular();
+</script>
+</body>
+</html>

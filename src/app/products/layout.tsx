@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 
-export default async function ConfigLayout({
+export default async function ProductsLayout({
   children,
 }: {
   children: React.ReactNode

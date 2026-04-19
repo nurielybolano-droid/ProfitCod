@@ -3,10 +3,16 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
+import { useState, useEffect } from 'react'
 
 interface SidebarProps {
   userName: string
   userEmail: string
+}
+
+interface Product {
+  id: string
+  name: string
 }
 
 const navItems = [
@@ -30,12 +36,14 @@ const navItems = [
     )
   },
   { 
-    href: '/config', 
-    label: 'Configuración',
+    href: '/products', 
+    label: 'Productos',
+    id: 'nav-products',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        <path d="M21 7.5V16.5L12 21L3 16.5V7.5L12 3L21 7.5Z" />
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+        <line x1="12" y1="22.08" x2="12" y2="12" />
       </svg>
     )
   },
@@ -43,6 +51,17 @@ const navItems = [
 
 export default function Sidebar({ userName, userEmail }: SidebarProps) {
   const pathname = usePathname()
+  const [products, setProducts] = useState<Product[]>([])
+  const [isProductsOpen, setIsProductsOpen] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setProducts(data)
+      })
+      .catch(err => console.error('Error fetching products for sidebar:', err))
+  }, [])
 
   const initials = userName
     .split(' ')
@@ -54,25 +73,58 @@ export default function Sidebar({ userName, userEmail }: SidebarProps) {
   return (
     <nav className="sidebar">
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
-        </div>
-        <span className="sidebar-logo-text">ProfitCod</span>
+        <span className="sidebar-logo-text">Profit<span>Cod</span></span>
       </div>
 
-      <div className="sidebar-nav">
-        {navItems.map(item => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`nav-item ${pathname === item.href || pathname.startsWith(item.href + '/') ? 'active' : ''}`}
-          >
-            <span className="nav-item-icon">{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
+      <div className="sidebar-nav" style={{ flex: 1 }}>
+        {navItems.map(item => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          const isProducts = item.id === 'nav-products'
+
+          return (
+            <div key={item.href} className="nav-item-wrapper">
+              <div className={`nav-item-container ${isActive ? 'active' : ''}`}>
+                <Link
+                  href={item.href}
+                  className="nav-item-link"
+                >
+                  <span className="nav-item-icon">{item.icon}</span>
+                  {item.label}
+                </Link>
+                
+                {isProducts && (
+                  <button 
+                    className={`nav-item-dropdown-toggle ${isProductsOpen ? 'open' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsProductsOpen(!isProductsOpen)
+                    }}
+                    title="Ver productos"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {isProducts && isProductsOpen && products.length > 0 && (
+                <div className="submenu">
+                  {products.map(p => (
+                    <Link 
+                      key={p.id} 
+                      href={`/products?id=${p.id}`}
+                      className="submenu-item"
+                    >
+                      <span className="submenu-dot" />
+                      {p.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <div className="sidebar-footer">

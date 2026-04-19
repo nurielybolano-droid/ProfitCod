@@ -475,8 +475,17 @@ export default function RecordsPage() {
         }
 
         /* ── Table ── */
-        .rec-table-wrap { overflow: hidden; border-radius: var(--radius-md); }
-        .rec-table-scroll { overflow-x: auto; }
+        .rec-table-wrap { 
+          overflow: hidden; 
+          border-radius: var(--radius-md);
+          max-height: calc(100vh - 220px);
+          display: flex;
+          flex-direction: column;
+        }
+        .rec-table-scroll { 
+          overflow: auto;
+          flex: 1;
+        }
         .rec-table {
           width: max-content; min-width: 100%;
           border-collapse: collapse; font-size: 0.75rem;
@@ -485,8 +494,11 @@ export default function RecordsPage() {
           padding: 10px 12px; white-space: nowrap; text-align: center;
           font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
           letter-spacing: 0.04em; color: var(--color-text-muted);
-          border-bottom: 2px solid rgba(0,0,0,0.06);
-          position: relative;
+          border-bottom: 2px solid var(--border);
+          position: sticky;
+          top: 0;
+          background: var(--surface2);
+          z-index: 10;
         }
         .rec-table td {
           padding: 9px 12px; text-align: center; white-space: nowrap;
@@ -502,18 +514,21 @@ export default function RecordsPage() {
         .th-money  { }
         .th-actions { min-width: 80px; }
 
-        .td-calc  { background: rgba(123,97,255,0.03); color: var(--color-primary); }
-        .td-money { font-weight: 600; }
+        .td-calc  { background: rgba(0, 200, 150, 0.03); color: var(--mint); }
+        .td-money { font-weight: 600; color: var(--text); }
         .td-kpi   { font-weight: 700; }
         .td-pos   { color: #27ae60; }
         .td-neg   { color: var(--color-danger); }
 
         /* Sticky first 2 columns */
         .th-sticky, .td-sticky {
-          position: sticky; background: rgba(255,255,255,0.95); z-index: 2;
+          position: sticky; 
+          background: var(--surface) !important; 
+          z-index: 5;
         }
-        .th-sticky:nth-child(1), .td-sticky:nth-child(1) { left: 0; min-width: 90px; }
-        .th-sticky:nth-child(2), .td-sticky:nth-child(2) { left: 90px; min-width: 140px; border-right: 1px solid rgba(0,0,0,0.06); }
+        .th-sticky { z-index: 15; } /* Higher than normal th */
+        .th-sticky:nth-child(1), .td-sticky:nth-child(1) { left: 0; min-width: 90px; border-right: 1px solid var(--border); }
+        .th-sticky:nth-child(2), .td-sticky:nth-child(2) { left: 90px; min-width: 140px; border-right: 1px solid var(--border); }
 
         .td-date { font-weight: 600; font-size: 0.78rem; }
         .td-product-name { font-weight: 600; color: var(--color-primary); font-size: 0.78rem; }

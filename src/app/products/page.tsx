@@ -39,7 +39,7 @@ const fmt = (v: number) => v.toLocaleString('es-ES', { minimumFractionDigits: 2,
 // Component
 // ——————————————————————————————————————————————————————————————————————————————————————
 
-export default function ConfigPage() {
+export default function ProductsPage() {
   const [products,  setProducts]  = useState<Product[]>([])
   const [loading,   setLoading]   = useState(true)
   const [saving,    setSaving]    = useState(false)
@@ -135,7 +135,7 @@ export default function ConfigPage() {
     <>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Configuración de Productos</h1>
+          <h1 className="page-title">Gestión de Productos</h1>
           <p className="page-subtitle">Define los costos y parámetros económicos de tus productos.</p>
         </div>
       </div>

@@ -63,34 +63,28 @@ export default function LoginPage() {
       alignItems: 'center', 
       justifyContent: 'center', 
       minHeight: '100vh',
-      padding: '2rem'
+      padding: '2rem',
+      background: 'var(--night)'
     }}>
       <div className="auth-card glass-panel" style={{ 
         maxWidth: '440px', 
         width: '100%', 
         padding: '3rem',
-        textAlign: 'center'
+        textAlign: 'center',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)'
       }}>
         <div className="auth-header" style={{ marginBottom: '2.5rem' }}>
-          <div className="auth-logo" style={{ 
-            fontSize: '2.5rem', 
-            marginBottom: '1rem',
-            background: 'var(--color-primary-gradient)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            display: 'inline-block'
-          }}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7B61FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-            </svg>
+          <div className="logo" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
+            Profit<span>Cod</span>
           </div>
-          <h1 className="auth-title" style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--color-text-primary)' }}>ProfitCod</h1>
-          <p className="auth-subtitle" style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '0.5rem' }}>Bienvenido de nuevo</p>
+          <h1 className="auth-title" style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text)', fontFamily: 'Syne' }}>Iniciar sesión</h1>
+          <p className="auth-subtitle" style={{ fontSize: '0.85rem', color: 'var(--muted2)', marginTop: '0.5rem' }}>Bienvenido de nuevo a tu control de beneficios</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'left' }}>
           <div className="form-group">
-            <label className="form-label" htmlFor="email">Correo Electrónico</label>
+            <label className="form-label" htmlFor="email" style={{ color: 'var(--muted2)' }}>Correo Electrónico</label>
             <input
               id="email"
               type="email"
@@ -104,7 +98,7 @@ export default function LoginPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="password">Contraseña</label>
+            <label className="form-label" htmlFor="password" style={{ color: 'var(--muted2)' }}>Contraseña</label>
             <input
               id="password"
               type="password"
@@ -117,22 +111,22 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && <p className="form-error" style={{ color: 'var(--color-danger)', fontSize: '0.8rem', textAlign: 'center' }}>{error}</p>}
+          {error && <p className="form-error" style={{ color: 'var(--accent)', fontSize: '0.8rem', textAlign: 'center' }}>{error}</p>}
 
           <button
             id="login-submit"
             type="submit"
             className="btn btn-primary"
-            style={{ justifyContent: 'center', width: '100%', marginTop: '0.5rem' }}
+            style={{ justifyContent: 'center', width: '100%', marginTop: '0.5rem', padding: '0.75rem' }}
             disabled={loading}
           >
-            {loading ? 'Cargando...' : 'Iniciar Sesión'}
+            {loading ? 'Cargando...' : 'Entrar en mi cuenta'}
           </button>
         </form>
 
-        <div className="auth-footer" style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+        <div className="auth-footer" style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--muted2)' }}>
           ¿Aún no tienes cuenta?&nbsp;
-          <Link href="/register" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Crea una ahora</Link>
+          <Link href="/register" style={{ color: 'var(--mint)', fontWeight: 600 }}>Crea una ahora</Link>
         </div>
       </div>
     </div>

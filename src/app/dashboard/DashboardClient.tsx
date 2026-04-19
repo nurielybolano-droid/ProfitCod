@@ -125,7 +125,7 @@ function QuickEntryModal({
         <div className="modal glass-panel" onClick={e => e.stopPropagation()}>
           <div className="modal-body" style={{ textAlign: 'center', padding: '3rem' }}>
             <p style={{ color: 'var(--color-danger)', marginBottom: '1.5rem' }}>No hay productos configurados</p>
-            <Link href="/config" className="btn btn-primary">Configurar primer producto</Link>
+            <Link href="/products" className="btn btn-primary">Configurar primer producto</Link>
           </div>
         </div>
       </div>
@@ -134,13 +134,13 @@ function QuickEntryModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal glass-panel" onClick={e => e.stopPropagation()}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">Nuevo Registro Diario</h2>
-          <button className="modal-close" onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.25rem' }}>✕</button>
+          <button className="modal-close" onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.25rem', color: 'var(--muted)', cursor: 'pointer' }}>✕</button>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          <div className="modal-body" style={{ maxHeight: '72vh' }}>
             <div className="form-grid-2">
               <div className="form-group">
                 <label className="form-label">Producto Principal (1ud)</label>
@@ -168,62 +168,51 @@ function QuickEntryModal({
               </div>
             </div>
 
-            <div style={{ padding: '1rem', background: 'rgba(123, 97, 255, 0.05)', borderRadius: '12px', marginBottom: '1.5rem' }}>
-              <p style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--color-primary)', textTransform: 'uppercase', marginBottom: '1rem' }}>Pedidos Recibidos</p>
-              <div className="form-grid-2">
-                <div className="form-group">
+            <div style={{ padding: '1.5rem', background: 'rgba(0, 200, 150, 0.04)', borderRadius: '14px', marginBottom: '1.5rem', border: '1px solid rgba(0, 200, 150, 0.1)' }}>
+              <p style={{ fontWeight: 800, fontSize: '0.7rem', color: 'var(--mint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Ventas Recibidas</p>
+              <div className="form-grid-2" style={{ marginBottom: 0 }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label small">1 Unidad</label>
                   <input type="number" className="form-input" placeholder="0" value={form.ordersReceived1} onChange={e => setForm(f => ({ ...f, ordersReceived1: e.target.value }))} />
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label small">2 Unidades</label>
                   <input type="number" className="form-input" placeholder="0" value={form.ordersReceived2} onChange={e => setForm(f => ({ ...f, ordersReceived2: e.target.value }))} />
                 </div>
               </div>
             </div>
 
-            <div style={{ padding: '1rem', background: 'rgba(39, 174, 96, 0.05)', borderRadius: '12px', marginBottom: '1.5rem' }}>
-              <p style={{ fontWeight: 600, fontSize: '0.8rem', color: '#27ae60', textTransform: 'uppercase', marginBottom: '1rem' }}>Pedidos Confirmados</p>
+            <div style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '14px', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
+              <p style={{ fontWeight: 800, fontSize: '0.7rem', color: 'var(--muted2)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1rem' }}>Logística y Entregas</p>
               <div className="form-grid-2">
                 <div className="form-group">
-                  <label className="form-label small">1 Unidad</label>
+                  <label className="form-label small">Confirmados 1ud</label>
                   <input type="number" className="form-input" placeholder="0" value={form.ordersConfirmed1} onChange={e => setForm(f => ({ ...f, ordersConfirmed1: e.target.value }))} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label small">2 Unidades</label>
+                  <label className="form-label small">Confirmados 2ud</label>
                   <input type="number" className="form-input" placeholder="0" value={form.ordersConfirmed2} onChange={e => setForm(f => ({ ...f, ordersConfirmed2: e.target.value }))} />
                 </div>
               </div>
-            </div>
-
-            <div className="form-grid-2" style={{ marginBottom: '1.5rem' }}>
-               <div className="form-group">
-                <label className="form-label">Total Enviados</label>
-                <input type="number" className="form-input" placeholder="0" value={form.ordersShipped} onChange={e => setForm(f => ({ ...f, ordersShipped: e.target.value }))} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Devoluciones</label>
-                <input type="number" className="form-input" placeholder="0" value={form.returns} onChange={e => setForm(f => ({ ...f, returns: e.target.value }))} />
-              </div>
-            </div>
-
-            <div style={{ padding: '1rem', background: 'rgba(123, 97, 255, 0.1)', borderRadius: '12px', marginBottom: '1.5rem' }}>
-              <p style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--color-primary)', textTransform: 'uppercase', marginBottom: '1rem' }}>Entregas Exitosas</p>
-              <div className="form-grid-2">
-                <div className="form-group">
-                  <label className="form-label small">Entregados 1ud</label>
+              <div className="form-grid-3" style={{ marginBottom: 0 }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label small">Enviados</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.ordersShipped} onChange={e => setForm(f => ({ ...f, ordersShipped: e.target.value }))} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label small">Entregados</label>
                   <input type="number" className="form-input" placeholder="0" value={form.ordersDelivered1} onChange={e => setForm(f => ({ ...f, ordersDelivered1: e.target.value }))} />
                 </div>
-                <div className="form-group">
-                  <label className="form-label small">Entregados 2ud</label>
-                  <input type="number" className="form-input" placeholder="0" value={form.ordersDelivered2} onChange={e => setForm(f => ({ ...f, ordersDelivered2: e.target.value }))} />
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label small">Devoluciones</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.returns} onChange={e => setForm(f => ({ ...f, returns: e.target.value }))} />
                 </div>
               </div>
             </div>
 
-            <div className="form-grid-2">
+            <div className="form-grid-2" style={{ marginBottom: 0 }}>
               <div className="form-group">
-                <label className="form-label">Otros Gastos (€)</label>
+                <label className="form-label">Costes Operativos (€)</label>
                 <input type="number" step="0.01" className="form-input" placeholder="0.00" value={form.fixedCosts} onChange={e => setForm(f => ({ ...f, fixedCosts: e.target.value }))} />
               </div>
               <div className="form-group">
@@ -232,11 +221,11 @@ function QuickEntryModal({
               </div>
             </div>
 
-            {error && <p className="form-error" style={{ color: 'var(--color-danger)', fontSize: '0.85rem' }}>{error}</p>}
+            {error && <p className="form-error" style={{ color: 'var(--accent)', fontSize: '0.85rem', marginTop: '1rem', textAlign: 'center' }}>{error}</p>}
           </div>
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
-            <button id="save-record" type="submit" className="btn btn-primary" disabled={loading}>
+            <button type="button" className="btn btn-outline" onClick={onClose} style={{ padding: '0.75rem 1.5rem' }}>Cancelar</button>
+            <button id="save-record" type="submit" className="btn btn-primary" disabled={loading} style={{ padding: '0.75rem 2rem' }}>
               {loading ? 'Guardando...' : 'Guardar Registro'}
             </button>
           </div>
@@ -426,7 +415,7 @@ export default function DashboardClient() {
       )}
 
       {/* Header */}
-      <div className="page-header" style={{ alignItems: 'flex-start' }}>
+      <div className="page-header" style={{ alignItems: 'flex-start', marginBottom: '2.5rem' }}>
         <div>
           <h1 className="page-title">Panel de Control</h1>
           <p className="page-subtitle">
@@ -437,12 +426,12 @@ export default function DashboardClient() {
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {/* RANGO FECHAS */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '4px 6px', border: '1px solid rgba(0,0,0,0.08)' }}>
-              <Calendar size={14} style={{ color: 'var(--color-text-muted)', margin: '0 8px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface2)', borderRadius: '10px', padding: '4px 6px', border: '1px solid var(--border)' }}>
+              <Calendar size={14} style={{ color: 'var(--muted)', margin: '0 8px' }} />
               <select 
                 value={datePreset}
                 onChange={e => handlePresetChange(e.target.value)}
-                style={{ border: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--color-text-secondary)', padding: '4px 2px', outline: 'none', cursor: 'pointer' }}
+                style={{ border: 'none', background: 'transparent', fontSize: '0.75rem', color: 'var(--muted2)', padding: '4px 2px', outline: 'none', cursor: 'pointer' }}
               >
                 <option value="hoy">Hoy</option>
                 <option value="7">Últimos 7 días</option>
@@ -467,7 +456,7 @@ export default function DashboardClient() {
             <button 
               type="button"
               className="btn btn-secondary" 
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', border: '1px solid rgba(0,0,0,0.1)' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text)' }}
               onClick={() => setProductDropdownOpen(!productDropdownOpen)}
             >
               <Filter size={14} /> 
@@ -584,36 +573,36 @@ export default function DashboardClient() {
 
           <div className="charts-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
             <div className="chart-card glass-panel" style={{ height: '350px' }}>
-              <div className="chart-header"><span className="chart-title">Pedidos</span></div>
+              <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Pedidos</span></div>
               <div className="chart-body" style={{ height: '280px' }}><DailyOrdersChart metrics={metrics} /></div>
             </div>
             <div className="chart-card glass-panel" style={{ height: '350px' }}>
-              <div className="chart-header"><span className="chart-title">Ingresos</span></div>
+              <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Ingresos</span></div>
               <div className="chart-body" style={{ height: '280px' }}><DailyRevenueChart metrics={metrics} /></div>
             </div>
             <div className="chart-card glass-panel" style={{ height: '350px' }}>
-              <div className="chart-header"><span className="chart-title">Beneficio Diario</span></div>
+              <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Beneficio Diario</span></div>
               <div className="chart-body" style={{ height: '280px' }}><DailyProfitChart metrics={metrics} /></div>
             </div>
             <div className="chart-card glass-panel" style={{ height: '350px' }}>
-              <div className="chart-header"><span className="chart-title">Beneficio Acumulado</span></div>
+              <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Beneficio Acumulado</span></div>
               <div className="chart-body" style={{ height: '280px' }}><CumulativeProfitChart metrics={metrics} /></div>
             </div>
             {/* Nuevas gráficas agregadas */}
             <div className="chart-card glass-panel" style={{ height: '350px' }}>
-              <div className="chart-header"><span className="chart-title">Ads vs Beneficio Neto</span></div>
+              <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Ads vs Beneficio Neto</span></div>
               <div className="chart-body" style={{ height: '280px' }}><AdsVsProfitChart metrics={metrics} /></div>
             </div>
             <div className="chart-card glass-panel" style={{ height: '350px' }}>
-              <div className="chart-header"><span className="chart-title">Eficiencia: CPA vs ROAS</span></div>
+              <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Eficiencia: CPA vs ROAS</span></div>
               <div className="chart-body" style={{ height: '280px' }}><CpaVsRoasChart metrics={metrics} /></div>
             </div>
             <div className="chart-card glass-panel" style={{ height: '350px' }}>
-              <div className="chart-header"><span className="chart-title">Entregados vs Devueltos</span></div>
+              <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Entregados vs Devueltos</span></div>
               <div className="chart-body" style={{ height: '280px' }}><DeliveredVsReturnsChart metrics={metrics} /></div>
             </div>
             <div className="chart-card glass-panel" style={{ height: '350px' }}>
-              <div className="chart-header"><span className="chart-title">Ventas por Variante</span></div>
+              <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Ventas por Variante</span></div>
               <div className="chart-body" style={{ height: '280px' }}><VariantDistributionPieChart metrics={metrics} /></div>
             </div>
           </div>
@@ -680,7 +669,7 @@ export default function DashboardClient() {
           width: 16px;
           height: 16px;
           border-radius: 4px;
-          border: 1px solid rgba(0,0,0,0.2);
+          border: 1px solid var(--border);
           display: flex;
           align-items: center;
           justify-content: center;
