@@ -93,6 +93,7 @@ export default function RecordsPage() {
          totalCogs: res[0].totalCogs + res[1].totalCogs,
          totalShippingCost: res[0].totalShippingCost + res[1].totalShippingCost,
          totalCodFee: res[0].totalCodFee + res[1].totalCodFee,
+         totalIva: res[0].totalIva + res[1].totalIva,
          delivered: totalDelivered,
          shipped: res[0].shipped + res[1].shipped,
          returns: res[0].returns + res[1].returns,
@@ -330,6 +331,7 @@ export default function RecordsPage() {
                 <PreviewCell label="Fact. Est."   value={`${f2(preview.revenue)} €`} color="blue" />
                 <PreviewCell label="Fact. Real"   value={`${f2(preview.revenue)} €`} color="blue" />
                 <PreviewCell label="Coste Prod."  value={`${f2(preview.totalCogs)} €`} color="red" />
+                <PreviewCell label="Coste Total" value={`${f2(preview.totalCogs + preview.totalIva)} €`} sub={`${f2(preview.totalCogs)}€ + ${f2(preview.totalIva)}€ IVA`} color="red" />
                 <PreviewCell label="Coste Envío"  value={`${f2(preview.totalShippingCost)} €`} color="red" />
                 <PreviewCell label="Comisión COD" value={`${f2(preview.totalCodFee)} €`} color="red" />
                 <PreviewCell label="Gastos Tot."  value={`${f2(preview.totalInvestment)} €`} color="red" />
@@ -389,7 +391,7 @@ export default function RecordsPage() {
                   <tbody>
                     {rows.map((m, idx) => (
                       <tr key={`${m.recordId}-${idx}`}>
-                        <td className="td-sticky td-date">{new Date(m.date).toLocaleDateString('es-ES')}</td>
+                        <td className="td-sticky td-date">{new Date(m.date).toLocaleDateString('es-ES', { timeZone: 'UTC' })}</td>
                         <td className="td-sticky td-product">
                           <div className="td-product-name">{m.productName}</div>
                         </td>
@@ -585,12 +587,13 @@ const CELL_COLORS: Record<CellColor, { bg: string; text: string }> = {
   default: { bg: 'rgba(0,0,0,0.03)',      text: 'var(--color-text-secondary)' },
 }
 
-function PreviewCell({ label, value, color = 'default' }: { label: string; value: string; color?: CellColor }) {
+function PreviewCell({ label, value, sub, color = 'default' }: { label: string; value: string; sub?: string; color?: CellColor }) {
   const { bg, text } = CELL_COLORS[color]
   return (
     <div style={{ background: bg, borderRadius: 8, padding: '6px 8px' }}>
       <div style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', marginBottom: 2 }}>{label}</div>
       <div style={{ fontSize: '0.85rem', fontWeight: 700, color: text }}>{value}</div>
+      {sub && <div style={{ fontSize: '0.55rem', color: 'var(--color-text-muted)', marginTop: 1 }}>{sub}</div>}
     </div>
   )
 }

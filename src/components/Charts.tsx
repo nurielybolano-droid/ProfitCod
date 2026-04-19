@@ -79,7 +79,7 @@ const BaseLineChart = ({ data, dataKey, name, color, currency = true }: any) => 
       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
       <XAxis 
         dataKey="date" 
-        tickFormatter={(d) => new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+        tickFormatter={(d) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' })}
         tick={{ fill: COLORS.text, fontSize: 10 }}
         axisLine={false}
         tickLine={false}
@@ -127,7 +127,7 @@ export function AdsVsProfitChart({ metrics }: { metrics: DailyMetrics[] }) {
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
         <XAxis 
           dataKey="date" 
-          tickFormatter={(d) => new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+          tickFormatter={(d) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' })}
           tick={{ fill: COLORS.text, fontSize: 10 }}
           axisLine={false}
           tickLine={false}
@@ -164,7 +164,7 @@ export function CpaVsRoasChart({ metrics }: { metrics: DailyMetrics[] }) {
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
         <XAxis 
           dataKey="date" 
-          tickFormatter={(d) => new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+          tickFormatter={(d) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' })}
           tick={{ fill: COLORS.text, fontSize: 10 }}
           axisLine={false}
           tickLine={false}
@@ -220,7 +220,7 @@ export function DeliveredVsReturnsChart({ metrics }: { metrics: DailyMetrics[] }
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
         <XAxis 
           dataKey="date" 
-          tickFormatter={(d) => new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+          tickFormatter={(d) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' })}
           tick={{ fill: COLORS.text, fontSize: 10 }}
           axisLine={false}
           tickLine={false}

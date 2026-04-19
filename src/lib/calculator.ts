@@ -62,6 +62,7 @@ export interface DailyMetrics {
   totalCogs: number
   totalShippingCost: number
   totalCodFee: number
+  totalIva: number
   totalInvestment: number
   revenue: number
   profit: number
@@ -130,7 +131,7 @@ export function calculateMetrics(
     const totalIvaSale = delivered * (p.costProduct || 0) * (p.units || 1) * ((p.iva || 0) / 100)
     const totalCogs = delivered * (p.costProduct || 0) * (p.units || 1)
     
-    const vEnvioCost = received * (p.costEnvio || 0)
+    const vEnvioCost = vShipped * (p.costEnvio || 0)
     const vCodFee = vShipped * (p.feeCod || 0)
     const vReturnCost = vReturns * (p.costReturn || 0)
     const vLogistics = vEnvioCost + vCodFee + vReturnCost
@@ -154,6 +155,7 @@ export function calculateMetrics(
       totalCogs,
       totalShippingCost: vEnvioCost,
       totalCodFee: vCodFee,
+      totalIva: totalIvaSale,
       totalInvestment,
       revenue,
       profit,
