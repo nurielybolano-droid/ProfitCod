@@ -17,7 +17,7 @@ export async function generateDashboardPDF({
   metrics,
   chartIds
 }: ExportData) {
-  const doc = jsPDF({
+  const doc = new jsPDF({
     orientation: 'p',
     unit: 'mm',
     format: 'a4'
