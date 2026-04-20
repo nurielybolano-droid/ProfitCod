@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: 'Calcula tu beneficio real restando todos los costes ocultos de tu negocio COD. Sin hojas de Excel complicadas.',
 }
 
+import { Providers } from '@/components/Providers'
+
 export default function RootLayout({
   children,
 }: {
@@ -13,7 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

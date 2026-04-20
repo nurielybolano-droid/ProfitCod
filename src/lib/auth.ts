@@ -25,6 +25,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!user) return null
 
+        if (!user.isActive) {
+          throw new Error('Cuenta desactivada. Contacte con el administrador.')
+        }
+
         const passwordMatch = await bcrypt.compare(
           credentials.password as string,
           user.password
@@ -36,6 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           name: user.name,
           email: user.email,
+          isAdmin: user.isAdmin,
         }
       },
     }),

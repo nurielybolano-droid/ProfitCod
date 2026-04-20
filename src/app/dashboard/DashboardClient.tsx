@@ -16,7 +16,9 @@ import {
 } from '@/components/Charts'
 import AIAssistant from '@/components/AIAssistant'
 import BreakevenSimulator from '@/components/BreakevenSimulator'
-import { Archive, Trash2, Calendar, Filter, ChevronDown, Check } from 'lucide-react'
+import { Archive, Trash2, Calendar, Filter, ChevronDown, Check, Download } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { generateDashboardPDF } from '@/lib/pdf-generator'
 
 interface Product {
   id: string
@@ -307,6 +309,40 @@ export default function DashboardClient() {
     }
   }
 
+  const { data: session } = useSession()
+  const [exporting, setExporting] = useState(false)
+
+  const handleExportPDF = async () => {
+    if (metrics.length === 0) return
+    setExporting(true)
+    try {
+      const chartIds = [
+        'chart-orders', 'chart-revenue', 'chart-profit', 'chart-cumulative',
+        'chart-ads-profit', 'chart-cpa-roas', 'chart-delivery-returns', 'chart-variants'
+      ]
+      
+      const kpiData = [
+        { label: 'Beneficio Acumulado', value: formatCurrency(totalProfit) },
+        { label: 'Ingresos Brutos', value: formatCurrency(totalRevenue) },
+        { label: 'Total Pedidos', value: totalOrders.toString() },
+        { label: 'Tasa de Entrega', value: formatPercent(avgDelivery) },
+        { label: 'ROAS Promedio', value: avgROAS.toFixed(2) + 'x' }
+      ]
+
+      await generateDashboardPDF({
+        userName: session?.user?.name || 'Usuario',
+        dateRange: { start: dateRange.start, end: dateRange.end },
+        kpis: kpiData,
+        metrics: metrics,
+        chartIds: chartIds
+      })
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const [records, setRecords] = useState<RawRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -500,6 +536,16 @@ export default function DashboardClient() {
             )}
           </div>
 
+          <button 
+            className="btn btn-outline" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+            onClick={handleExportPDF}
+            disabled={exporting || metrics.length === 0}
+          >
+            <Download size={14} /> 
+            {exporting ? 'Exportando...' : 'Exportar PDF'}
+          </button>
+
           <button className="btn btn-primary" onClick={() => setShowModal(true)}>
             + Nuevo Registro
           </button>
@@ -572,36 +618,36 @@ export default function DashboardClient() {
           </div>
 
           <div className="charts-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
-            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+            <div id="chart-orders" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Pedidos</span></div>
               <div className="chart-body" style={{ height: '280px' }}><DailyOrdersChart metrics={metrics} /></div>
             </div>
-            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+            <div id="chart-revenue" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Ingresos</span></div>
               <div className="chart-body" style={{ height: '280px' }}><DailyRevenueChart metrics={metrics} /></div>
             </div>
-            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+            <div id="chart-profit" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Beneficio Diario</span></div>
               <div className="chart-body" style={{ height: '280px' }}><DailyProfitChart metrics={metrics} /></div>
             </div>
-            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+            <div id="chart-cumulative" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Beneficio Acumulado</span></div>
               <div className="chart-body" style={{ height: '280px' }}><CumulativeProfitChart metrics={metrics} /></div>
             </div>
             {/* Nuevas gráficas agregadas */}
-            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+            <div id="chart-ads-profit" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Ads vs Beneficio Neto</span></div>
               <div className="chart-body" style={{ height: '280px' }}><AdsVsProfitChart metrics={metrics} /></div>
             </div>
-            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+            <div id="chart-cpa-roas" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Eficiencia: CPA vs ROAS</span></div>
               <div className="chart-body" style={{ height: '280px' }}><CpaVsRoasChart metrics={metrics} /></div>
             </div>
-            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+            <div id="chart-delivery-returns" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Entregados vs Devueltos</span></div>
               <div className="chart-body" style={{ height: '280px' }}><DeliveredVsReturnsChart metrics={metrics} /></div>
             </div>
-            <div className="chart-card glass-panel" style={{ height: '350px' }}>
+            <div id="chart-variants" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Ventas por Variante</span></div>
               <div className="chart-body" style={{ height: '280px' }}><VariantDistributionPieChart metrics={metrics} /></div>
             </div>

@@ -39,13 +39,18 @@ export default function LoginPage() {
           window.alert('ERROR DE AUTH.JS: ' + result.error)
         }
       } else {
-        console.log('Login successful! Session should be active now.')
-        console.log('FREEZING REDIRECT FOR 3 SECONDS... Check Console/Network tabs.')
+        console.log('Login successful!')
         
-        // Let user see the success log
-        await new Promise(resolve => setTimeout(resolve, 3000))
-        
-        router.push('/dashboard')
+        // Fetch session to check role
+        const sessionRes = await fetch('/api/auth/session')
+        const session = await sessionRes.json()
+        const isAdmin = session?.user?.isAdmin
+
+        if (isAdmin) {
+          router.push('/sistema')
+        } else {
+          router.push('/dashboard')
+        }
         router.refresh()
       }
     } catch (err: any) {

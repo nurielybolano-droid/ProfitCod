@@ -10,6 +10,8 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
+      const isAdmin = (auth?.user as any)?.isAdmin
+
       const isPublicPage = 
         nextUrl.pathname === '/' || 
         nextUrl.pathname.startsWith('/privacidad') || 
@@ -17,9 +19,19 @@ export const authConfig = {
         nextUrl.pathname.startsWith('/blog')
 
       const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register')
+      const isAdminPage = nextUrl.pathname.startsWith('/sistema')
       
       if (isAuthPage) {
-        if (isLoggedIn) return Response.redirect(new URL('/dashboard', nextUrl))
+        if (isLoggedIn) {
+          if (isAdmin) return Response.redirect(new URL('/sistema', nextUrl))
+          return Response.redirect(new URL('/dashboard', nextUrl))
+        }
+        return true
+      }
+
+      if (isAdminPage) {
+        if (!isLoggedIn) return false
+        if (!isAdmin) return Response.redirect(new URL('/dashboard', nextUrl))
         return true
       }
 
@@ -30,12 +42,14 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.isAdmin = (user as any).isAdmin
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        ;(session.user as any).isAdmin = token.isAdmin
       }
       return session
     },

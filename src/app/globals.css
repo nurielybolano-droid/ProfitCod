@@ -494,3 +494,212 @@ a {
   font-size: 0.65rem;
   font-weight: 600;
 }
+
+/* Admin Dashboard Specific Styles */
+.admin-badge {
+  background: rgba(0, 200, 150, 0.1);
+  color: var(--mint);
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  margin-left: 8px;
+  vertical-align: middle;
+  border: 1px solid rgba(0, 200, 150, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-avatar {
+  background: linear-gradient(135deg, var(--mint), #00A37B) !important;
+  color: var(--night) !important;
+  font-weight: 800;
+}
+
+.admin-sidebar .nav-item-container.active {
+  background: rgba(0, 200, 150, 0.08) !important;
+  border-left: 3px solid var(--mint) !important;
+}
+
+.admin-sidebar .nav-item-container.active .nav-item-link {
+  color: var(--mint) !important;
+}
+
+/* User Table & Admin UI */
+.admin-header {
+  margin-bottom: 2.5rem;
+}
+
+.admin-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.admin-subtitle {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.user-status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-active {
+  background: rgba(0, 200, 150, 0.1);
+  color: var(--mint);
+}
+
+.status-inactive {
+  background: rgba(255, 87, 51, 0.1);
+  color: var(--accent);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--surface2);
+  transition: .3s;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--muted);
+  transition: .3s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: rgba(0, 200, 150, 0.2);
+  border-color: var(--mint);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(18px);
+  background-color: var(--mint);
+}
+
+.user-metrics-mini {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.metric-item-mini {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label-mini {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.metric-value-mini {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.admin-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  transition: border-color 0.25s;
+}
+
+.admin-card:hover { 
+  border-color: var(--border-hover); 
+}
+
+.user-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.user-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.user-card-info h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.user-card-info p {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.admin-container {
+  padding: 1rem;
+  width: 100%;
+}
+
+/* Capture & Print Utilities */
+.html2canvas-container {
+  width: 100% !important;
+  height: auto !important;
+}
+
+@media print {
+  .sidebar, .AIAssistant, .btn, .logout-btn {
+    display: none !important;
+  }
+}
