@@ -135,7 +135,7 @@ export function calculateMetrics(
     const totalIvaSale = delivered * (p.costProduct || 0) * (p.units || 1) * ((p.iva || 0) / 100)
     const totalCogs = delivered * (p.costProduct || 0) * (p.units || 1)
     
-    const vEnvioCost = vShipped * (p.costEnvio || 0)
+    const vEnvioCost = delivered > 0 ? (vShipped * (p.costEnvio || 0)) : 0
     const vCodFee = delivered * (p.feeCod || 0)
     const vReturnCost = vReturns * (p.costReturn || 0)
     const vLogistics = vEnvioCost + vCodFee + vReturnCost
@@ -213,7 +213,7 @@ export function calculateAllMetrics(
       ...record,
       ordersReceived1: record.ordersReceived1 ?? record.orders ?? 0,
       ordersReceived2: record.ordersReceived2 ?? 0,
-      ordersShipped: record.ordersShipped ?? record.orders ?? 0,
+      ordersShipped: record.ordersShipped ?? 0,
       ordersDelivered1: record.ordersDelivered1 ?? record.delivered ?? 0,
       ordersDelivered2: record.ordersDelivered2 ?? 0,
       returns1: record.returns1 ?? record.returns ?? record.rejected ?? 0,
