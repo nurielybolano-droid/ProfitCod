@@ -124,7 +124,7 @@ export function calculateMetrics(
     const vAdsSpend = Number(record.adsSpend || 0) * ratio
     const vFixedCosts = Number(record.fixedCosts || 0) * ratio
     // shipped is shared — split by ratio
-    const vShipped = Math.round(Number(record.ordersShipped || 0) * ratio)
+    const vShipped = Number(record.ordersShipped || 0) * ratio
     // returns are now per-variant: exactly as entered (like Excel cols Q and R)
     const vReturns = isSecond
       ? Number(record.returns2 || 0)
