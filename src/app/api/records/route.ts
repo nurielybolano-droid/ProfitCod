@@ -69,7 +69,7 @@ export const POST = auth(async (req) => {
     ordersConfirmed1, ordersConfirmed2,
     ordersShipped,
     ordersDelivered1, ordersDelivered2,
-    returns,
+    returns1, returns2,
     adsSpend, fixedCosts,
     notes,
   } = body
@@ -92,7 +92,8 @@ export const POST = auth(async (req) => {
         ordersShipped:    Number(ordersShipped    ?? 0),
         ordersDelivered1: Number(ordersDelivered1 ?? 0),
         ordersDelivered2: Number(ordersDelivered2 ?? 0),
-        returns:          Number(returns          ?? 0),
+        returns1:         Number(returns1         ?? 0),
+        returns2:         Number(returns2         ?? 0),
         adsSpend:         Number(adsSpend),
         fixedCosts:       Number(fixedCosts       ?? 0),
         notes:            notes ?? null,

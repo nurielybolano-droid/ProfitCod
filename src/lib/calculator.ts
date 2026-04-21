@@ -29,7 +29,8 @@ export interface DailyRecord {
   ordersShipped: number
   ordersDelivered1: number
   ordersDelivered2: number
-  returns: number
+  returns1: number
+  returns2: number
   
   adsSpend: number
   fixedCosts?: number
@@ -68,6 +69,7 @@ export interface DailyMetrics {
   profit: number
   
   // Ratios
+  shippingRate: number
   deliveryRate: number
   returnRate: number
   cpa: number
@@ -119,17 +121,20 @@ export function calculateMetrics(
     isSecond: boolean
   ) => {
     // Proportional split for shared fields
-    // NOTE: returns and shipped are total per day, we split them by ratio
-    const vShipped = Math.round(Number(record.ordersShipped || 0) * ratio)
-    const vReturns = Math.round(Number(record.returns || 0) * ratio)
     const vAdsSpend = Number(record.adsSpend || 0) * ratio
-    // NOTE: p.fixedCostDaily (Publi Diaria) is ONLY for the Breakeven Simulator in config,
-    // it does NOT affect daily records. The actual ad spend is in record.adsSpend.
     const vFixedCosts = Number(record.fixedCosts || 0) * ratio
+    // shipped is shared — split by ratio
+    const vShipped = Math.round(Number(record.ordersShipped || 0) * ratio)
+    // returns are now per-variant: exactly as entered (like Excel cols Q and R)
+    const vReturns = isSecond
+      ? Number(record.returns2 || 0)
+      : Number(record.returns1 || 0)
 
-    const revenue = delivered * (p.pvp || 0)
-    const totalIvaSale = delivered * (p.costProduct || 0) * (p.units || 1) * ((p.iva || 0) / 100)
-    const totalCogs = delivered * (p.costProduct || 0) * (p.units || 1)
+    // NEW LOGIC (Option A): Revenue and COGS based on Net Sales (Delivered - Returns)
+    const vNetSales = delivered - vReturns
+    const revenue = vNetSales * (p.pvp || 0)
+    const totalIvaSale = vNetSales * (p.costProduct || 0) * (p.units || 1) * ((p.iva || 0) / 100)
+    const totalCogs = vNetSales * (p.costProduct || 0) * (p.units || 1)
     
     const vEnvioCost = vShipped * (p.costEnvio || 0)
     const vCodFee = vShipped * (p.feeCod || 0)
@@ -159,7 +164,8 @@ export function calculateMetrics(
       totalInvestment,
       revenue,
       profit,
-      deliveryRate: received > 0 ? (delivered / received) * 100 : 0,
+      shippingRate: confirmed > 0 ? (vShipped / confirmed) * 100 : 0,
+      deliveryRate: vShipped > 0 ? (delivered / vShipped) * 100 : 0,
       returnRate: vShipped > 0 ? (vReturns / vShipped) * 100 : 0,
       cpa: received > 0 ? vAdsSpend / received : 0,
       roas: vAdsSpend > 0 ? revenue / vAdsSpend : 0,
@@ -211,7 +217,8 @@ export function calculateAllMetrics(
       ordersShipped: record.ordersShipped ?? record.orders ?? 0,
       ordersDelivered1: record.ordersDelivered1 ?? record.delivered ?? 0,
       ordersDelivered2: record.ordersDelivered2 ?? 0,
-      returns: record.returns ?? record.rejected ?? 0,
+      returns1: record.returns1 ?? record.returns ?? record.rejected ?? 0,
+      returns2: record.returns2 ?? 0,
       product: record.product,
       product2: record.product2 || null
     }

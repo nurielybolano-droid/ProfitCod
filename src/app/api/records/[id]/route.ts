@@ -15,7 +15,7 @@ export const PUT = auth(async (req, { params }) => {
       ordersConfirmed1, ordersConfirmed2,
       ordersShipped,
       ordersDelivered1, ordersDelivered2,
-      returns,
+      returns1, returns2,
       adsSpend, fixedCosts,
       notes,
     } = body
@@ -33,7 +33,8 @@ export const PUT = auth(async (req, { params }) => {
         ordersShipped:    ordersShipped    != null ? Number(ordersShipped)    : undefined,
         ordersDelivered1: ordersDelivered1 != null ? Number(ordersDelivered1) : undefined,
         ordersDelivered2: ordersDelivered2 != null ? Number(ordersDelivered2) : undefined,
-        returns:          returns          != null ? Number(returns)          : undefined,
+        returns1:         returns1         != null ? Number(returns1)         : undefined,
+        returns2:         returns2         != null ? Number(returns2)         : undefined,
         adsSpend:         adsSpend         != null ? Number(adsSpend)         : undefined,
         fixedCosts:       fixedCosts       != null ? Number(fixedCosts)       : undefined,
         notes:            notes !== undefined ? (notes || null) : undefined,

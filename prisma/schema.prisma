@@ -60,7 +60,8 @@ model DailyRecord {
   ordersShipped    Int      @default(0)
   ordersDelivered1 Int      @default(0)
   ordersDelivered2 Int      @default(0)
-  returns          Int      @default(0)
+  returns1         Int      @default(0)
+  returns2         Int      @default(0)
   adsSpend         Float
   fixedCosts       Float    @default(0)
   notes            String?

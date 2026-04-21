@@ -144,12 +144,13 @@ export async function generateDashboardPDF({
   doc.setFont('helvetica', 'bold')
   
   const cols = [
-    { name: 'Fecha', w: 25 },
-    { name: 'Producto', w: 60 },
-    { name: 'Pedidos', w: 20 },
-    { name: 'Entrega', w: 20 },
-    { name: 'Revenue', w: 25 },
-    { name: 'Profit', w: 25 },
+    { name: 'Fecha', w: 22 },
+    { name: 'Producto', w: 55 },
+    { name: 'Pedidos', w: 18 },
+    { name: 'Envío', w: 18 },
+    { name: 'Entrega', w: 18 },
+    { name: 'Revenue', w: 23 },
+    { name: 'Profit', w: 23 },
   ]
   
   let xOffset = margin + 2
@@ -176,15 +177,17 @@ export async function generateDashboardPDF({
     
     xOffset = margin + 2
     doc.text(new Date(m.date).toLocaleDateString(), xOffset, currentY + 4.5)
-    xOffset += 25
-    doc.text(m.productName || 'N/A', xOffset, currentY + 4.5, { maxWidth: 55 })
-    xOffset += 60
+    xOffset += 22
+    doc.text(m.productName || 'N/A', xOffset, currentY + 4.5, { maxWidth: 50 })
+    xOffset += 55
     doc.text(m.orders.toString(), xOffset, currentY + 4.5)
-    xOffset += 20
+    xOffset += 18
+    doc.text(`${m.shippingRate.toFixed(1)}%`, xOffset, currentY + 4.5)
+    xOffset += 18
     doc.text(`${m.deliveryRate.toFixed(1)}%`, xOffset, currentY + 4.5)
-    xOffset += 20
+    xOffset += 18
     doc.text(formatCurrency(m.revenue), xOffset, currentY + 4.5)
-    xOffset += 25
+    xOffset += 23
     
     const profit = formatCurrency(m.profit)
     if (m.profit < 0) doc.setTextColor(200, 0, 0)

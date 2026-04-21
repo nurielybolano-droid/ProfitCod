@@ -41,7 +41,8 @@ interface RawRecord {
   ordersShipped: number
   ordersDelivered1: number
   ordersDelivered2: number
-  returns: number
+  returns1: number
+  returns2: number
   adsSpend: number
   fixedCosts: number
   notes?: string | null
@@ -75,7 +76,8 @@ function QuickEntryModal({
     ordersShipped: '',
     ordersDelivered1: '',
     ordersDelivered2: '',
-    returns: '',
+    returns1: '',
+    returns2: '',
     adsSpend: '',
     fixedCosts: '',
     notes: '',
@@ -98,7 +100,8 @@ function QuickEntryModal({
       ordersShipped:    Number(form.ordersShipped || 0),
       ordersDelivered1: Number(form.ordersDelivered1 || 0),
       ordersDelivered2: Number(form.ordersDelivered2 || 0),
-      returns:          Number(form.returns || 0),
+      returns1:         Number(form.returns1 || 0),
+      returns2:         Number(form.returns2 || 0),
       adsSpend:         Number(form.adsSpend || 0),
       fixedCosts:       Number(form.fixedCosts || 0),
       product2Id:       form.product2Id || null,
@@ -196,18 +199,28 @@ function QuickEntryModal({
                   <input type="number" className="form-input" placeholder="0" value={form.ordersConfirmed2} onChange={e => setForm(f => ({ ...f, ordersConfirmed2: e.target.value }))} />
                 </div>
               </div>
-              <div className="form-grid-3" style={{ marginBottom: 0 }}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label small">Enviados</label>
+              <div className="form-grid-3">
+                <div className="form-group">
+                  <label className="form-label small">Enviados (total)</label>
                   <input type="number" className="form-input" placeholder="0" value={form.ordersShipped} onChange={e => setForm(f => ({ ...f, ordersShipped: e.target.value }))} />
                 </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label small">Entregados</label>
+                <div className="form-group">
+                  <label className="form-label small">Entregados 1ud</label>
                   <input type="number" className="form-input" placeholder="0" value={form.ordersDelivered1} onChange={e => setForm(f => ({ ...f, ordersDelivered1: e.target.value }))} />
                 </div>
+                <div className="form-group">
+                  <label className="form-label small">Entregados 2ud</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.ordersDelivered2} onChange={e => setForm(f => ({ ...f, ordersDelivered2: e.target.value }))} />
+                </div>
+              </div>
+              <div className="form-grid-2" style={{ marginBottom: 0 }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label small">Devoluciones</label>
-                  <input type="number" className="form-input" placeholder="0" value={form.returns} onChange={e => setForm(f => ({ ...f, returns: e.target.value }))} />
+                  <label className="form-label small">Dev 1ud</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.returns1} onChange={e => setForm(f => ({ ...f, returns1: e.target.value }))} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label small">Dev 2ud</label>
+                  <input type="number" className="form-input" placeholder="0" value={form.returns2} onChange={e => setForm(f => ({ ...f, returns2: e.target.value }))} />
                 </div>
               </div>
             </div>
@@ -325,6 +338,7 @@ export default function DashboardClient() {
         { label: 'Beneficio Acumulado', value: formatCurrency(totalProfit) },
         { label: 'Ingresos Brutos', value: formatCurrency(totalRevenue) },
         { label: 'Total Pedidos', value: totalOrders.toString() },
+        { label: 'Tasa de Envío', value: formatPercent(avgShipping) },
         { label: 'Tasa de Entrega', value: formatPercent(avgDelivery) },
         { label: 'ROAS Promedio', value: avgROAS.toFixed(2) + 'x' }
       ]
@@ -435,6 +449,9 @@ export default function DashboardClient() {
   const totalOrders = metrics.reduce((s, m) => s + m.orders, 0)
   const avgDelivery = metrics.length > 0
     ? metrics.reduce((s, m) => s + m.deliveryRate, 0) / metrics.length
+    : 0
+  const avgShipping = metrics.length > 0
+    ? metrics.reduce((s, m) => s + m.shippingRate, 0) / metrics.length
     : 0
   const avgROAS = metrics.length > 0
     ? metrics.reduce((s, m) => s + (m.roas || 0), 0) / metrics.length
@@ -608,6 +625,8 @@ export default function DashboardClient() {
               color="var(--color-primary)" trend={totalProfit >= 0 ? 'up' : 'down'} sub={`${metrics.length} días`} />
             <KpiCard label="Ingresos Brutos" value={formatCurrency(totalRevenue)} color="var(--color-info)" />
             <KpiCard label="Total Pedidos" value={totalOrders.toString()} color="var(--color-primary-light)" />
+            <KpiCard label="Tasa de Envío" value={formatPercent(avgShipping)}
+              color="var(--color-info)" trend={avgShipping >= 80 ? 'up' : 'down'} />
             <KpiCard label="Tasa de Entrega" value={formatPercent(avgDelivery)}
               color="var(--color-success)" trend={avgDelivery >= 70 ? 'up' : 'down'} />
             <KpiCard label="ROAS Promedio" value={avgROAS.toFixed(2) + 'x'} color="var(--color-primary)" />
@@ -661,6 +680,8 @@ export default function DashboardClient() {
                   {selectedProductIds.length !== 1 && <th>Producto</th>}
                   <th>Recibidos</th>
                   <th>Entregados</th>
+                  <th>Envío</th>
+                  <th>Entrega</th>
                   <th>Ingresos</th>
                   <th>Beneficio</th>
                   <th>Estado</th>
@@ -676,6 +697,8 @@ export default function DashboardClient() {
                       {selectedProductIds.length !== 1 && <td style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{m.productName}</td>}
                       <td>{m.orders}</td>
                       <td>{m.delivered}</td>
+                      <td style={{ color: 'var(--muted2)', fontSize: '0.85rem' }}>{formatPercent(m.shippingRate)}</td>
+                      <td style={{ color: 'var(--muted2)', fontSize: '0.85rem' }}>{formatPercent(m.deliveryRate)}</td>
                       <td style={{ fontWeight: 600 }}>{formatCurrency(m.revenue)}</td>
                       <td style={{ color: m.profit >= 0 ? '#27ae60' : '#e74c3c', fontWeight: 600 }}>{formatCurrency(m.profit)}</td>
                       <td><span className={`status-badge ${st.status}`}>{st.label}</span></td>

@@ -20,13 +20,13 @@ export interface DayStatusResult {
  * Determina el estado de un día
  */
 export function getDayStatus(metrics: DailyMetrics): DayStatusResult {
-  const { profit, deliveryRate } = metrics
+  const { profit, deliveryRate, shippingRate } = metrics
 
-  if (deliveryRate < 50 || profit < -50) {
+  if (deliveryRate < 60 || profit < -50 || shippingRate < 70) {
     return { status: 'critical', label: 'Crítico', emoji: '🔴' }
   }
 
-  if (profit < 0 || (deliveryRate >= 50 && deliveryRate < 70)) {
+  if (profit < 0 || (deliveryRate >= 60 && deliveryRate < 80) || (shippingRate >= 70 && shippingRate < 90)) {
     return { status: 'unstable', label: 'Inestable', emoji: '🟡' }
   }
 
@@ -43,13 +43,23 @@ export function generateAlerts(metrics: DailyMetrics[]): Alert[] {
 
   const latest = metrics[metrics.length - 1]
 
-  // Alerta: tasa de entrega < 60%
-  if (latest.deliveryRate < 60 && latest.orders > 0) {
+  // Alerta: tasa de envío < 80%
+  if (latest.shippingRate < 80 && latest.confirmed > 0) {
+    alerts.push({
+      id: 'low-shipping-rate',
+      severity: 'warning',
+      message: 'Retraso en envíos',
+      detail: `Tasa de envío: ${latest.shippingRate.toFixed(1)}% — revisa almacén/mensajería`,
+    })
+  }
+
+  // Alerta: tasa de entrega < 70% (sobre enviados)
+  if (latest.deliveryRate < 70 && latest.shipped > 0) {
     alerts.push({
       id: 'low-delivery-rate',
       severity: 'critical',
-      message: 'Problema de calidad / tráfico',
-      detail: `Tasa de entrega: ${latest.deliveryRate.toFixed(1)}% — por debajo del 60%`,
+      message: 'Problema de transporte',
+      detail: `Tasa de entrega: ${latest.deliveryRate.toFixed(1)}% — alta tasa de rechazo`,
     })
   }
 
