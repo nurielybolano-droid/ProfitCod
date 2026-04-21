@@ -33,9 +33,11 @@ const COLORS = {
 const CustomTooltip = ({ active, payload, label, currency = true, extraFields }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    const variants = data.variants as DailyMetrics[];
+
     return (
-      <div className="glass-panel" style={{ padding: '12px', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.05)', fontSize: '0.8rem' }}>
-        <p style={{ fontWeight: 700, marginBottom: '4px', color: '#2D3748' }}>{label}</p>
+      <div className="glass-panel" style={{ padding: '12px', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.05)', fontSize: '0.8rem', minWidth: '180px' }}>
+        <p style={{ fontWeight: 700, marginBottom: '6px', color: '#2D3748', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '4px' }}>{label}</p>
         
         {/* Main Chart Metrics */}
         {payload.map((entry: any, index: number) => {
@@ -44,9 +46,26 @@ const CustomTooltip = ({ active, payload, label, currency = true, extraFields }:
           else if (entry.name === 'ROAS (x)') val = `${val?.toFixed(2)}x`;
           
           return (
-            <p key={index} style={{ color: entry.color, fontWeight: 600, margin: '2px 0' }}>
-              {entry.name}: {val}
-            </p>
+            <div key={index} style={{ marginBottom: '4px' }}>
+              <p style={{ color: entry.color, fontWeight: 700, margin: '0' }}>
+                {entry.name}: {val}
+              </p>
+              
+              {/* Breakdown by variant if available */}
+              {variants && variants.length > 1 && (
+                <div style={{ paddingLeft: '8px', marginTop: '2px', opacity: 0.8, fontSize: '0.7rem' }}>
+                  {variants.map((v, vIdx) => {
+                    const vVal = v[entry.dataKey as keyof DailyMetrics];
+                    if (typeof vVal !== 'number') return null;
+                    return (
+                      <p key={vIdx} style={{ margin: '0', color: '#718096' }}>
+                        • {v.productName?.split('(')[0].trim() || 'Var'}: <span style={{ fontWeight: 600 }}>{currency ? formatCurrency(vVal) : vVal}</span>
+                      </p>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
 

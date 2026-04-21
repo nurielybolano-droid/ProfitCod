@@ -422,7 +422,6 @@ export default function DashboardClient() {
     setDeleting(null)
   }
 
-  // Multi-Product Aggregate Logic
   const metrics = useMemo(() => {
     if (!records.length) return []
     const allMetrics = calculateAllMetrics(records)
@@ -439,6 +438,57 @@ export default function DashboardClient() {
       return { ...m, cumulativeProfit: cumulative }
     })
   }, [records, selectedProductIds])
+
+  // Aggregation for charts: one point per day, summed
+  const aggregatedMetricsForCharts = useMemo(() => {
+    if (!metrics.length) return []
+    
+    const groups: Record<string, DailyMetrics & { variants: DailyMetrics[] }> = {}
+    
+    metrics.forEach(m => {
+      const date = m.date.split('T')[0]
+      if (!groups[date]) {
+        groups[date] = {
+          ...m,
+          date, // Normalize to date string without time
+          variants: [m]
+        }
+      } else {
+        const g = groups[date];
+        g.orders += m.orders;
+        g.confirmed += m.confirmed;
+        g.shipped += m.shipped;
+        g.delivered += m.delivered;
+        g.returns += m.returns;
+        g.adsSpend += m.adsSpend;
+        g.fixedCosts += m.fixedCosts;
+        g.totalCogs += m.totalCogs;
+        g.totalShippingCost += m.totalShippingCost;
+        g.totalCodFee += m.totalCodFee;
+        g.totalIva += m.totalIva;
+        g.totalInvestment += m.totalInvestment;
+        g.revenue += m.revenue;
+        g.profit += m.profit;
+        
+        // Recalculate derived ratios for the group
+        g.shippingRate = g.confirmed > 0 ? (g.shipped / g.confirmed) * 100 : 0;
+        g.deliveryRate = g.shipped > 0 ? (g.delivered / g.shipped) * 100 : 0;
+        g.returnRate = g.shipped > 0 ? (g.returns / g.shipped) * 100 : 0;
+        g.cpa = g.orders > 0 ? g.adsSpend / g.orders : 0;
+        g.roas = g.adsSpend > 0 ? g.revenue / g.adsSpend : 0;
+        
+        g.variants.push(m);
+      }
+    })
+    
+    // Sort and calculate cumulative profit on the daily totals
+    const result = Object.values(groups).sort((a, b) => a.date.localeCompare(b.date));
+    let cumulative = 0;
+    return result.map(m => {
+      cumulative += m.profit;
+      return { ...m, cumulativeProfit: cumulative };
+    });
+  }, [metrics])
 
   const alerts = useMemo(() => getSummaryAlerts(metrics), [metrics])
 
@@ -639,32 +689,32 @@ export default function DashboardClient() {
           <div className="charts-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
             <div id="chart-orders" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Pedidos</span></div>
-              <div className="chart-body" style={{ height: '280px' }}><DailyOrdersChart metrics={metrics} /></div>
+              <div className="chart-body" style={{ height: '280px' }}><DailyOrdersChart metrics={aggregatedMetricsForCharts} /></div>
             </div>
             <div id="chart-revenue" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Ingresos</span></div>
-              <div className="chart-body" style={{ height: '280px' }}><DailyRevenueChart metrics={metrics} /></div>
+              <div className="chart-body" style={{ height: '280px' }}><DailyRevenueChart metrics={aggregatedMetricsForCharts} /></div>
             </div>
             <div id="chart-profit" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Beneficio Diario</span></div>
-              <div className="chart-body" style={{ height: '280px' }}><DailyProfitChart metrics={metrics} /></div>
+              <div className="chart-body" style={{ height: '280px' }}><DailyProfitChart metrics={aggregatedMetricsForCharts} /></div>
             </div>
             <div id="chart-cumulative" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Beneficio Acumulado</span></div>
-              <div className="chart-body" style={{ height: '280px' }}><CumulativeProfitChart metrics={metrics} /></div>
+              <div className="chart-body" style={{ height: '280px' }}><CumulativeProfitChart metrics={aggregatedMetricsForCharts} /></div>
             </div>
             {/* Nuevas gráficas agregadas */}
             <div id="chart-ads-profit" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Ads vs Beneficio Neto</span></div>
-              <div className="chart-body" style={{ height: '280px' }}><AdsVsProfitChart metrics={metrics} /></div>
+              <div className="chart-body" style={{ height: '280px' }}><AdsVsProfitChart metrics={aggregatedMetricsForCharts} /></div>
             </div>
             <div id="chart-cpa-roas" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Eficiencia: CPA vs ROAS</span></div>
-              <div className="chart-body" style={{ height: '280px' }}><CpaVsRoasChart metrics={metrics} /></div>
+              <div className="chart-body" style={{ height: '280px' }}><CpaVsRoasChart metrics={aggregatedMetricsForCharts} /></div>
             </div>
             <div id="chart-delivery-returns" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Entregados vs Devueltos</span></div>
-              <div className="chart-body" style={{ height: '280px' }}><DeliveredVsReturnsChart metrics={metrics} /></div>
+              <div className="chart-body" style={{ height: '280px' }}><DeliveredVsReturnsChart metrics={aggregatedMetricsForCharts} /></div>
             </div>
             <div id="chart-variants" className="chart-card glass-panel" style={{ height: '350px' }}>
               <div className="chart-header" style={{ padding: '0 0 1.5rem' }}><span className="chart-title">Ventas por Variante</span></div>
