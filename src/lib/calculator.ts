@@ -130,14 +130,13 @@ export function calculateMetrics(
       ? Number(record.returns2 || 0)
       : Number(record.returns1 || 0)
 
-    // NEW LOGIC (Option A): Revenue and COGS based on Net Sales (Delivered - Returns)
-    const vNetSales = delivered - vReturns
-    const revenue = vNetSales * (p.pvp || 0)
-    const totalIvaSale = vNetSales * (p.costProduct || 0) * (p.units || 1) * ((p.iva || 0) / 100)
-    const totalCogs = vNetSales * (p.costProduct || 0) * (p.units || 1)
+    // NEW LOGIC (Excel Matching): Revenue and COGS based on actual Deliveries
+    const revenue = delivered * (p.pvp || 0)
+    const totalIvaSale = delivered * (p.costProduct || 0) * (p.units || 1) * ((p.iva || 0) / 100)
+    const totalCogs = delivered * (p.costProduct || 0) * (p.units || 1)
     
     const vEnvioCost = vShipped * (p.costEnvio || 0)
-    const vCodFee = vShipped * (p.feeCod || 0)
+    const vCodFee = delivered * (p.feeCod || 0)
     const vReturnCost = vReturns * (p.costReturn || 0)
     const vLogistics = vEnvioCost + vCodFee + vReturnCost
     
