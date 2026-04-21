@@ -168,7 +168,7 @@ function QuickEntryModal({
                 <input type="date" className="form-input" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
               </div>
               <div className="form-group">
-                <label className="form-label">Inversión Ads (€)</label>
+                <label className="form-label">Publicidad (€)</label>
                 <input type="number" step="0.01" className="form-input" placeholder="0.00" value={form.adsSpend} onChange={e => setForm(f => ({ ...f, adsSpend: e.target.value }))} required />
               </div>
             </div>
@@ -215,11 +215,11 @@ function QuickEntryModal({
               </div>
               <div className="form-grid-2" style={{ marginBottom: 0 }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label small">Dev 1ud</label>
+                  <label className="form-label small">Devoluciones 1ud</label>
                   <input type="number" className="form-input" placeholder="0" value={form.returns1} onChange={e => setForm(f => ({ ...f, returns1: e.target.value }))} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label small">Dev 2ud</label>
+                  <label className="form-label small">Devoluciones 2ud</label>
                   <input type="number" className="form-input" placeholder="0" value={form.returns2} onChange={e => setForm(f => ({ ...f, returns2: e.target.value }))} />
                 </div>
               </div>
@@ -227,7 +227,7 @@ function QuickEntryModal({
 
             <div className="form-grid-2" style={{ marginBottom: 0 }}>
               <div className="form-group">
-                <label className="form-label">Costes Operativos (€)</label>
+                <label className="form-label">Gastos Fijos (€)</label>
                 <input type="number" step="0.01" className="form-input" placeholder="0.00" value={form.fixedCosts} onChange={e => setForm(f => ({ ...f, fixedCosts: e.target.value }))} />
               </div>
               <div className="form-group">

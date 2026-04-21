@@ -21,7 +21,7 @@ interface RawRecord {
   ordersConfirmed1: number; ordersConfirmed2: number
   ordersShipped: number
   ordersDelivered1: number; ordersDelivered2: number
-  returns: number; adsSpend: number; fixedCosts: number; notes?: string | null
+  returns1: number; returns2: number; adsSpend: number; fixedCosts: number; notes?: string | null
 }
 
 
@@ -37,7 +37,7 @@ const EMPTY = {
   ordersConfirmed1: '', ordersConfirmed2: '',
   ordersShipped: '',
   ordersDelivered1: '', ordersDelivered2: '',
-  returns: '', adsSpend: '', fixedCosts: '', notes: '',
+  returns1: '', returns2: '', adsSpend: '', fixedCosts: '', notes: '',
 }
 type FormState = typeof EMPTY
 
@@ -71,7 +71,8 @@ export default function RecordsPage() {
       ordersShipped:    n(form.ordersShipped),
       ordersDelivered1: n(form.ordersDelivered1), 
       ordersDelivered2: n(form.ordersDelivered2),
-      returns: n(form.returns), 
+      returns1: n(form.returns1), 
+      returns2: n(form.returns2), 
       adsSpend: n(form.adsSpend), 
       fixedCosts: n(form.fixedCosts),
     }
@@ -143,7 +144,7 @@ export default function RecordsPage() {
       ordersConfirmed1: String(r.ordersConfirmed1), ordersConfirmed2: String(r.ordersConfirmed2),
       ordersShipped:    String(r.ordersShipped),
       ordersDelivered1: String(r.ordersDelivered1), ordersDelivered2: String(r.ordersDelivered2),
-      returns: String(r.returns), adsSpend: String(r.adsSpend),
+      returns1: String(r.returns1), returns2: String(r.returns2), adsSpend: String(r.adsSpend),
       fixedCosts: String(r.fixedCosts), notes: r.notes ?? '',
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -159,7 +160,7 @@ export default function RecordsPage() {
       ordersConfirmed1: n(form.ordersConfirmed1), ordersConfirmed2: n(form.ordersConfirmed2),
       ordersShipped:    n(form.ordersShipped),
       ordersDelivered1: n(form.ordersDelivered1), ordersDelivered2: n(form.ordersDelivered2),
-      returns: n(form.returns), adsSpend: n(form.adsSpend),
+      returns1: n(form.returns1), returns2: n(form.returns2), adsSpend: n(form.adsSpend),
       fixedCosts: n(form.fixedCosts), notes: form.notes || null,
     }
     try {
@@ -287,7 +288,7 @@ export default function RecordsPage() {
 
               {/* ── Entregados ── */}
               <SL><PackageCheck size={14} style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '4px' }} /> Pedidos Entregados</SL>
-              <div className="form-grid-3">
+              <div className="form-grid-2">
                 <div className="form-group">
                   <label className="form-label">Entregados 1ud</label>
                   <input type="number" min="0" className="form-input" placeholder="0" value={form.ordersDelivered1} onChange={set('ordersDelivered1')} />
@@ -298,9 +299,20 @@ export default function RecordsPage() {
                   </label>
                   <input type="number" min="0" className="form-input" style={{ borderColor: prod1?.packEnabled ? 'rgba(46,212,122,0.3)' : 'inherit' }} placeholder="0" value={form.ordersDelivered2} onChange={set('ordersDelivered2')} />
                 </div>
+              </div>
+
+              {/* ── Devoluciones ── */}
+              <SL><PackageCheck size={14} style={{ display: 'inline-block', verticalAlign: 'text-bottom', margin: '0 4px 0 0' }} /> Devoluciones</SL>
+              <div className="form-grid-2">
                 <div className="form-group">
-                  <label className="form-label">Devoluciones</label>
-                  <input type="number" min="0" className="form-input" placeholder="0" value={form.returns} onChange={set('returns')} />
+                  <label className="form-label">Devoluciones 1ud</label>
+                  <input type="number" min="0" className="form-input" placeholder="0" value={form.returns1} onChange={set('returns1')} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ color: prod1?.packEnabled ? 'var(--color-success)' : 'inherit' }}>
+                    {prod1?.packEnabled ? `Dev. Pack (${prod1.packUnits}ud)` : 'Devoluciones 2ud'}
+                  </label>
+                  <input type="number" min="0" className="form-input" style={{ borderColor: prod1?.packEnabled ? 'rgba(46,212,122,0.3)' : 'inherit' }} placeholder="0" value={form.returns2} onChange={set('returns2')} />
                 </div>
               </div>
 
