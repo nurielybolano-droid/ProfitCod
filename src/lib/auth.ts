@@ -36,11 +36,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!passwordMatch) return null
 
+        // Trial expiration check logic can be placed in API, but authorize returns what goes to jwt token
         return {
           id: user.id,
           name: user.name,
           email: user.email,
           isAdmin: user.isAdmin,
+          plan: user.plan,
+          planStatus: user.planStatus,
         }
       },
     }),

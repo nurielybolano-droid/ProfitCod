@@ -18,6 +18,9 @@ interface UserData {
     name: string
     email: string
     isActive: boolean
+    plan: string
+    planStatus: string
+    trialEndsAt: string
   }
   products: Product[]
   metrics: {
@@ -57,6 +60,29 @@ export default function UserDetailPage() {
       console.error('Error loading user data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleUpdatePlan = async (updates: { plan?: string, planStatus?: string }) => {
+    if (!id || !data) return
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      })
+      if (res.ok) {
+        const updatedUser = await res.json()
+        setData({
+          ...data,
+          user: { ...data.user, ...updatedUser }
+        })
+      } else {
+        alert('Error updating user plan')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error updating user plan')
     }
   }
 
@@ -145,6 +171,61 @@ export default function UserDetailPage() {
               <p>Este usuario no tiene productos configurados.</p>
             </div>
           )}
+        </div>
+      </section>
+
+      <section style={{ marginBottom: '3rem' }}>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '1.5rem', fontFamily: 'Syne' }}>Suscripción y Plan</h2>
+        <div className="admin-card" style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(200px, 1fr)', gap: '2rem' }}>
+          <div>
+            <h3 style={{ fontSize: '0.9rem', color: 'var(--muted2)', marginBottom: '0.8rem' }}>Plan Actual</h3>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              {['starter', 'pro', 'business'].map(p => (
+                <button 
+                  key={p}
+                  onClick={() => handleUpdatePlan({ plan: p })}
+                  className={`btn ${data.user.plan === p ? 'btn-primary' : 'btn-outline'}`}
+                  style={{ textTransform: 'capitalize', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            <h3 style={{ fontSize: '0.9rem', color: 'var(--muted2)', marginBottom: '0.8rem' }}>Estado de Pago</h3>
+             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {['trial', 'active', 'expired', 'cancelled'].map(s => (
+                <button 
+                  key={s}
+                  onClick={() => handleUpdatePlan({ planStatus: s })}
+                  className={`btn ${data.user.planStatus === s ? 'btn-primary' : 'btn-outline'}`}
+                  style={{ textTransform: 'capitalize', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div style={{ background: 'var(--surface2)', borderRadius: '8px', padding: '1.25rem' }}>
+            <h3 style={{ fontSize: '0.9rem', color: 'var(--muted2)', marginBottom: '1rem' }}>Detalles de Suscripción</h3>
+            <div style={{ marginBottom: '0.75rem', fontSize: '0.85rem' }}>
+              <span style={{ color: 'var(--muted2)', display: 'inline-block', width: '90px' }}>Plan:</span>
+              <strong style={{ textTransform: 'capitalize' }}>{data.user.plan}</strong>
+            </div>
+            <div style={{ marginBottom: '0.75rem', fontSize: '0.85rem' }}>
+              <span style={{ color: 'var(--muted2)', display: 'inline-block', width: '90px' }}>Estado:</span>
+              <strong style={{ textTransform: 'capitalize', color: data.user.planStatus === 'active' ? 'var(--mint)' : data.user.planStatus === 'trial' ? '#EF9F27' : 'var(--accent)' }}>
+                {data.user.planStatus}
+              </strong>
+            </div>
+            {data.user.trialEndsAt && (
+              <div style={{ fontSize: '0.85rem' }}>
+                <span style={{ color: 'var(--muted2)', display: 'inline-block', width: '90px' }}>Fin Prueba:</span>
+                <strong>{new Date(data.user.trialEndsAt).toLocaleDateString()}</strong>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>

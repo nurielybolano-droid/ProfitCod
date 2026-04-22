@@ -5,10 +5,15 @@ import bcrypt from 'bcryptjs'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { name, email, password } = body
+    const { name, email, password, plan } = body
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !plan) {
       return NextResponse.json({ error: 'Todos los campos son obligatorios' }, { status: 400 })
+    }
+
+    const validPlans = ['starter', 'pro', 'business']
+    if (!validPlans.includes(plan)) {
+      return NextResponse.json({ error: 'Plan seleccionado no válido' }, { status: 400 })
     }
 
     if (password.length < 6) {
@@ -22,9 +27,19 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 12)
 
+    const trialEndsAt = new Date()
+    trialEndsAt.setDate(trialEndsAt.getDate() + 7) // 7 days trial
+
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword },
-      select: { id: true, name: true, email: true, createdAt: true },
+      data: { 
+        name, 
+        email, 
+        password: hashedPassword,
+        plan,
+        planStatus: 'trial',
+        trialEndsAt
+      },
+      select: { id: true, name: true, email: true, createdAt: true, plan: true, planStatus: true },
     })
 
     return NextResponse.json(user, { status: 201 })

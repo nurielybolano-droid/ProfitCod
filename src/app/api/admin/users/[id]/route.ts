@@ -14,14 +14,22 @@ export async function PATCH(
   }
 
   try {
-    const { isActive } = await request.json()
+    const { isActive, plan, planStatus } = await request.json()
+
+    const updateData: any = {}
+    if (isActive !== undefined) updateData.isActive = isActive
+    if (plan !== undefined) updateData.plan = plan
+    if (planStatus !== undefined) updateData.planStatus = planStatus
 
     const user = await prisma.user.update({
       where: { id },
-      data: { isActive },
+      data: updateData,
       select: {
         id: true,
-        isActive: true
+        isActive: true,
+        plan: true,
+        planStatus: true,
+        trialEndsAt: true,
       }
     })
 

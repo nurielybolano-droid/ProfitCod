@@ -37,19 +37,44 @@ export const authConfig = {
 
       if (isPublicPage) return true
 
-      return isLoggedIn
+      if (isLoggedIn) {
+        const pStatus = (auth?.user as any)?.planStatus
+        // Allow access to upgrade page for trial/cancelled/expired
+        if (nextUrl.pathname.startsWith('/upgrade') || nextUrl.pathname.startsWith('/api/payment')) {
+          return true
+        }
+        
+        // If not active and not on upgrade page, redirect to upgrade
+        if (pStatus !== 'active' && pStatus !== 'trial' && !isAdmin) {
+           return Response.redirect(new URL('/upgrade', nextUrl))
+        }
+        return true
+      }
+
+      return false
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
         token.isAdmin = (user as any).isAdmin
+        token.plan = (user as any).plan
+        token.planStatus = (user as any).planStatus
       }
+      
+      // Update token on session update
+      if (trigger === "update" && session) {
+        if (session.planStatus) token.planStatus = session.planStatus
+        if (session.plan) token.plan = session.plan
+      }
+      
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
         ;(session.user as any).isAdmin = token.isAdmin
+        ;(session.user as any).plan = token.plan
+        ;(session.user as any).planStatus = token.planStatus
       }
       return session
     },

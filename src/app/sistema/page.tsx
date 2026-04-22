@@ -9,6 +9,8 @@ interface User {
   name: string
   email: string
   isActive: boolean
+  plan: string
+  planStatus: string
   createdAt: string
   _count: {
     products: number
@@ -19,10 +21,44 @@ interface User {
 export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [settings, setSettings] = useState({ stripeEnabled: true, codEnabled: true })
+  const [savingSettings, setSavingSettings] = useState(false)
 
   useEffect(() => {
     fetchUsers()
+    fetchSettings()
   }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/settings')
+      if (res.ok) {
+        const data = await res.json()
+        setSettings(data)
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error)
+    }
+  }
+
+  const toggleSetting = async (key: 'stripeEnabled' | 'codEnabled') => {
+    setSavingSettings(true)
+    const newSettings = { ...settings, [key]: !settings[key] }
+    setSettings(newSettings)
+    
+    try {
+      await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSettings)
+      })
+    } catch (error) {
+      console.error('Error saving settings:', error)
+      setSettings(settings) // revert
+    } finally {
+      setSavingSettings(false)
+    }
+  }
 
   const fetchUsers = async () => {
     try {
@@ -70,6 +106,36 @@ export default function AdminPage() {
         <p className="admin-subtitle">Gestiona los usuarios y monitorea su rendimiento global.</p>
       </header>
 
+      <section className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, fontFamily: 'Syne', marginBottom: '1rem' }}>Configuración de Pagos</h2>
+        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--muted2)' }}>Stripe (Tarjetas)</span>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={settings.stripeEnabled} 
+                onChange={() => toggleSetting('stripeEnabled')}
+                disabled={savingSettings}
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--muted2)' }}>Contra Reembolso (Manual)</span>
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={settings.codEnabled} 
+                onChange={() => toggleSetting('codEnabled')}
+                disabled={savingSettings}
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
       <div className="user-list-grid">
         {users.map(user => (
           <div key={user.id} className="admin-card">
@@ -85,6 +151,17 @@ export default function AdminPage() {
             </div>
 
             <div className="user-metrics-mini">
+              <div className="metric-item-mini">
+                <span className="metric-label-mini">Plan</span>
+                <span className="metric-value-mini" style={{ textTransform: 'capitalize' }}>{user.plan}</span>
+              </div>
+              <div className="metric-item-mini">
+                <span className="metric-label-mini">Acceso</span>
+                <span className="metric-value-mini" style={{ color: user.planStatus === 'active' ? 'var(--mint)' : user.planStatus === 'trial' ? '#EF9F27' : 'var(--accent)', textTransform: 'capitalize' }}>{user.planStatus}</span>
+              </div>
+            </div>
+
+            <div className="user-metrics-mini" style={{ marginTop: '0.5rem', borderTop: 'none', paddingTop: 0 }}>
               <div className="metric-item-mini">
                 <span className="metric-label-mini">Productos</span>
                 <span className="metric-value-mini">{user._count.products}</span>

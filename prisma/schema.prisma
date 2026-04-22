@@ -18,6 +18,21 @@ model User {
   updatedAt    DateTime      @updatedAt
   dailyRecords DailyRecord[]
   products     Product[]
+
+  // Subscription fields
+  plan                 String    @default("free") // "free" | "starter" | "pro" | "business"
+  planStatus           String    @default("trial") // "trial" | "active" | "expired" | "cancelled"
+  trialEndsAt          DateTime? 
+  planPaidAt           DateTime? 
+  stripeCustomerId     String?   
+  stripeSubscriptionId String?   
+}
+
+model SystemSettings {
+  id              String   @id @default(cuid())
+  stripeEnabled   Boolean  @default(true)
+  codEnabled      Boolean  @default(true)
+  updatedAt       DateTime @updatedAt
 }
 
 model Product {
