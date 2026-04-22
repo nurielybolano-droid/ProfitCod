@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { signOut } from 'next-auth/react'
 
 export default function UpgradePage() {
   const router = useRouter()
@@ -130,10 +131,21 @@ export default function UpgradePage() {
             
             {methods.codEnabled && (
               <button 
-                className="btn btn-outline" 
                 onClick={() => handlePayment('cod')}
                 disabled={processing}
-                style={{ width: '100%', justifyContent: 'center', padding: '0.85rem', borderColor: 'var(--border)', color: 'var(--text)' }}
+                style={{ 
+                  width: '100%', 
+                  justifyContent: 'center', 
+                  padding: '0.85rem', 
+                  background: 'transparent',
+                  border: '1px solid var(--border)', 
+                  color: 'var(--text)',
+                  borderRadius: '100px',
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit'
+                }}
               >
                 Pago Contra Reembolso / Transferencia
               </button>
@@ -142,7 +154,10 @@ export default function UpgradePage() {
         )}
         
         <div style={{ marginTop: '2rem' }}>
-          <button onClick={() => { fetch('/api/auth/signout', { method: 'POST' }).then(() => window.location.href='/login') }} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}>
+          <button 
+            onClick={() => signOut({ callbackUrl: '/login' })} 
+            style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}
+          >
             Cerrar sesión
           </button>
         </div>
