@@ -20,6 +20,9 @@ export async function GET() {
         email: true,
         isActive: true,
         createdAt: true,
+        plan: true,
+        planStatus: true,
+        trialEndsAt: true,
         _count: {
           select: {
             products: true,

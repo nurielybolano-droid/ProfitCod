@@ -48,7 +48,10 @@ export async function GET(
         id: user.id,
         name: user.name,
         email: user.email,
-        isActive: user.isActive
+        isActive: user.isActive,
+        plan: user.plan,
+        planStatus: user.planStatus,
+        trialEndsAt: user.trialEndsAt
       },
       products: user.products,
       metrics: {
